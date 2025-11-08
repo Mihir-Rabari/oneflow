@@ -1,11 +1,15 @@
 import { Router } from 'express';
 import { billingController } from './billing.controller';
-import { authenticate } from '@/middlewares/auth';
+import { authenticate, authorize } from '@/middlewares/auth';
+import { UserRole } from '@oneflow/shared';
 
 const router = Router();
 
 // All billing routes require authentication
 router.use(authenticate);
+
+// All billing routes are restricted to ADMIN and PROJECT_MANAGER
+router.use(authorize(UserRole.ADMIN, UserRole.PROJECT_MANAGER));
 
 // ===== Sales Orders =====
 router.post('/sales-orders', billingController.createSalesOrder.bind(billingController));
