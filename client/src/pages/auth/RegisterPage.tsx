@@ -1,13 +1,18 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Logo } from "@/components/Logo"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, AlertCircle } from "lucide-react"
+import { authApi } from "@/lib/api"
 
 export function RegisterPage() {
+  const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -15,10 +20,44 @@ export function RegisterPage() {
     confirmPassword: "",
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement registration logic
-    console.log("Register:", formData)
+    setError("")
+
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match")
+      return
+    }
+
+    // Validate password strength
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters long")
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const response = await authApi.register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      })
+
+      if (response.error) {
+        setError(response.error)
+      } else {
+        // Store email for OTP verification
+        localStorage.setItem('verifyEmail', formData.email)
+        // Navigate to OTP page
+        navigate('/verify-otp')
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -37,6 +76,12 @@ export function RegisterPage() {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
+            {error && (
+              <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-lg flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" />
+                <p className="text-sm">{error}</p>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
               <Input
@@ -92,8 +137,8 @@ export function RegisterPage() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full">
-              Create Account
+            <Button type="submit" className="w-full" loading={loading} disabled={loading}>
+              {loading ? 'Creating Account...' : 'Create Account'}
             </Button>
             <p className="text-sm text-center text-muted-foreground">
               Already have an account?{" "}

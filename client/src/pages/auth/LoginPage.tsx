@@ -1,22 +1,49 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Logo } from "@/components/Logo"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, AlertCircle } from "lucide-react"
+import { authApi, setAuthToken } from "@/lib/api"
 
 export function LoginPage() {
+  const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement login logic
-    console.log("Login:", formData)
+    setError("")
+    setLoading(true)
+
+    try {
+      const response = await authApi.login({
+        email: formData.email,
+        password: formData.password,
+      })
+
+      if (response.error) {
+        setError(response.error)
+      } else if (response.data) {
+        // Store token
+        if (response.data.accessToken) {
+          setAuthToken(response.data.accessToken)
+        }
+        // Navigate to dashboard
+        navigate('/dashboard')
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -35,6 +62,12 @@ export function LoginPage() {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
+            {error && (
+              <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-lg flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" />
+                <p className="text-sm">{error}</p>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -73,8 +106,8 @@ export function LoginPage() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full">
-              Sign In
+            <Button type="submit" className="w-full" loading={loading} disabled={loading}>
+              {loading ? 'Signing in...' : 'Sign In'}
             </Button>
             <p className="text-sm text-center text-muted-foreground">
               Don't have an account?{" "}

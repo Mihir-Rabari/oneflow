@@ -1,12 +1,29 @@
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Logo } from "@/components/Logo"
+import { AlertCircle } from "lucide-react"
+import { authApi, setAuthToken } from "@/lib/api"
 
 export function OTPPage() {
+  const navigate = useNavigate()
   const [otp, setOtp] = useState(["", "", "", "", "", ""])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [email, setEmail] = useState("")
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+
+  useEffect(() => {
+    // Get email from localStorage
+    const storedEmail = localStorage.getItem('verifyEmail')
+    if (!storedEmail) {
+      navigate('/register')
+    } else {
+      setEmail(storedEmail)
+    }
+  }, [navigate])
 
   const handleChange = (index: number, value: string) => {
     if (value.length > 1) return
@@ -27,16 +44,57 @@ export function OTPPage() {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError("")
+    
     const otpCode = otp.join("")
-    // TODO: Implement OTP verification logic
-    console.log("OTP:", otpCode)
+    if (otpCode.length !== 6) {
+      setError("Please enter all 6 digits")
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const response = await authApi.verifyOTP({
+        email,
+        otp: otpCode,
+      })
+
+      if (response.error) {
+        setError(response.error)
+      } else if (response.data) {
+        // Store token if provided
+        if ((response.data as any).accessToken) {
+          setAuthToken((response.data as any).accessToken)
+        }
+        // Clear stored email
+        localStorage.removeItem('verifyEmail')
+        // Navigate to dashboard
+        navigate('/dashboard')
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleResend = () => {
-    // TODO: Implement resend OTP logic
-    console.log("Resend OTP")
+  const handleResend = async () => {
+    setError("")
+    try {
+      const response = await authApi.resendOTP(email)
+      if (response.error) {
+        setError(response.error)
+      } else {
+        // Show success message (could add toast notification here)
+        setError("")
+        alert("OTP resent successfully!")
+      }
+    } catch (err) {
+      setError('Failed to resend OTP. Please try again.')
+    }
   }
 
   return (
@@ -54,7 +112,13 @@ export function OTPPage() {
           </div>
         </CardHeader>
         <form onSubmit={handleSubmit}>
-          <CardContent>
+          <CardContent className="space-y-6">
+            {error && (
+              <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-lg flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" />
+                <p className="text-sm">{error}</p>
+              </div>
+            )}
             <div className="flex gap-2 justify-center">
               {otp.map((digit, index) => (
                 <Input
@@ -75,8 +139,11 @@ export function OTPPage() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full">
-              Verify Email
+            <Button type="submit" className="w-full" loading={loading} disabled={loading}>
+              {loading ? 'Verifying...' : 'Verify Email'}
+            </Button>
+            <Button type="button" variant="ghost" className="w-full" onClick={handleResend} disabled={loading}>
+              Resend Code
             </Button>
             <div className="text-sm text-center text-muted-foreground">
               Didn't receive the code?{" "}
