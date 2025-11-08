@@ -99,6 +99,7 @@ export function ProjectDetailPage() {
   const [isEditTaskOpen, setIsEditTaskOpen] = useState(false)
   const [teamMembers, setTeamMembers] = useState<any[]>([])
   const [draggedTask, setDraggedTask] = useState<any>(null)
+  const [ganttZoom, setGanttZoom] = useState<number>(30) // days to show
 
   useEffect(() => {
     if (projectId) {
@@ -174,6 +175,27 @@ export function ProjectDetailPage() {
     if (!taskFormData.title.trim()) {
       setFormError('Task title is required')
       return
+    }
+
+    // Validate due date
+    if (dueDate) {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const selectedDate = new Date(dueDate)
+      selectedDate.setHours(0, 0, 0, 0)
+
+      if (selectedDate < today) {
+        setFormError('Due date cannot be in the past')
+        return
+      }
+
+      // Check if due date is too far in the future (optional: max 1 year)
+      const oneYearFromNow = new Date()
+      oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1)
+      if (selectedDate > oneYearFromNow) {
+        setFormError('Due date cannot be more than 1 year in the future')
+        return
+      }
     }
 
     const payload: any = {
@@ -311,6 +333,27 @@ export function ProjectDetailPage() {
     if (!editingTask) return
 
     setFormError(null)
+
+    // Validate due date
+    if (dueDate) {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const selectedDate = new Date(dueDate)
+      selectedDate.setHours(0, 0, 0, 0)
+
+      if (selectedDate < today) {
+        setFormError('Due date cannot be in the past')
+        return
+      }
+
+      const oneYearFromNow = new Date()
+      oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1)
+      if (selectedDate > oneYearFromNow) {
+        setFormError('Due date cannot be more than 1 year in the future')
+        return
+      }
+    }
+
     setUpdateLoading(true)
 
     try {
@@ -1115,15 +1158,50 @@ export function ProjectDetailPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
+                    {/* Timeline Header with Zoom Controls */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold">Zoom:</span>
+                        <Button
+                          variant={ganttZoom === 7 ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setGanttZoom(7)}
+                        >
+                          7 days
+                        </Button>
+                        <Button
+                          variant={ganttZoom === 14 ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setGanttZoom(14)}
+                        >
+                          14 days
+                        </Button>
+                        <Button
+                          variant={ganttZoom === 30 ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setGanttZoom(30)}
+                        >
+                          30 days
+                        </Button>
+                        <Button
+                          variant={ganttZoom === 60 ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setGanttZoom(60)}
+                        >
+                          60 days
+                        </Button>
+                      </div>
+                    </div>
+
                     {/* Timeline Header */}
                     <div className="flex items-center gap-2 border-b pb-2">
                       <div className="w-56 font-semibold text-sm">Task</div>
                       <div className="flex-1 flex justify-between text-xs text-muted-foreground px-4">
-                        <span>-15d</span>
-                        <span>-7d</span>
+                        <span>{-Math.floor(ganttZoom / 2)}d</span>
+                        <span>{-Math.floor(ganttZoom / 4)}d</span>
                         <span>Today</span>
-                        <span>+7d</span>
-                        <span>+15d</span>
+                        <span>+{Math.floor(ganttZoom / 4)}d</span>
+                        <span>+{Math.floor(ganttZoom / 2)}d</span>
                       </div>
                     </div>
 
@@ -1160,9 +1238,10 @@ export function ProjectDetailPage() {
                         const endDaysFromToday = Math.ceil((taskEnd.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
                         const duration = endDaysFromToday - startDaysFromToday
                         
-                        // Position as percentage of 30 days view (can show past tasks)
-                        const leftPercent = Math.max(0, Math.min(100, ((startDaysFromToday + 15) / 30) * 100))
-                        const widthPercent = Math.max(3, Math.min(100 - leftPercent, (duration / 30) * 100))
+                        // Position as percentage of zoom view (can show past tasks)
+                        const halfZoom = ganttZoom / 2
+                        const leftPercent = Math.max(0, Math.min(100, ((startDaysFromToday + halfZoom) / ganttZoom) * 100))
+                        const widthPercent = Math.max(3, Math.min(100 - leftPercent, (duration / ganttZoom) * 100))
                         
                         // Status color
                         const statusColors: { [key: string]: string } = {
@@ -1211,14 +1290,6 @@ export function ProjectDetailPage() {
                                 <span className="truncate">{task.estimatedHours ? `${task.estimatedHours}h` : ''}</span>
                               </div>
 
-                              {/* Due date indicator - show at end of bar */}
-                              {task.dueDate && (
-                                <div 
-                                  className="absolute top-0 h-8 w-0.5 bg-destructive/80"
-                                  style={{ left: `${Math.min(100, leftPercent + widthPercent)}%` }}
-                                  title={`Due: ${taskEnd.toLocaleDateString()}`}
-                                />
-                              )}
                             </div>
 
                             {/* Actions */}
@@ -1267,10 +1338,6 @@ export function ProjectDetailPage() {
                       <div className="flex items-center gap-1">
                         <div className="w-3 h-3 bg-gray-400 rounded"></div>
                         <span>Done</span>
-                      </div>
-                      <div className="flex items-center gap-1 ml-4">
-                        <div className="w-0.5 h-4 bg-destructive"></div>
-                        <span>Due Date</span>
                       </div>
                     </div>
                   </div>
