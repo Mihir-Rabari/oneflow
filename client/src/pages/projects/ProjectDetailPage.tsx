@@ -37,7 +37,7 @@ import {
   Trash2,
   Home
 } from "lucide-react"
-import { projectsApi, tasksApi, usersApi } from "@/lib/api"
+import { projectsApi, tasksApi, usersApi, salesOrdersApi, invoicesApi, purchaseOrdersApi, expensesApi } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 
 // Task Priority constants
@@ -109,14 +109,57 @@ export function ProjectDetailPage() {
   const [teamMembers, setTeamMembers] = useState<any[]>([])
   const [draggedTask, setDraggedTask] = useState<any>(null)
   const [ganttZoom, setGanttZoom] = useState<number>(30) // days to show
+  const [salesOrders, setSalesOrders] = useState<any[]>([])
+  const [invoices, setInvoices] = useState<any[]>([])
+  const [purchaseOrders, setPurchaseOrders] = useState<any[]>([])
+  const [expenses, setExpenses] = useState<any[]>([])
+  const [documentsLoading, setDocumentsLoading] = useState(false)
 
   useEffect(() => {
     if (projectId) {
       fetchProject()
       fetchTasks()
       fetchTeamMembers()
+      fetchProjectDocuments()
     }
   }, [projectId])
+
+  const fetchProjectDocuments = async () => {
+    setDocumentsLoading(true)
+    try {
+      // Fetch sales orders for this project
+      const soResponse = await salesOrdersApi.getAll()
+      if (soResponse.data?.data?.salesOrders) {
+        const projectSO = soResponse.data.data.salesOrders.filter((so: any) => so.projectId === projectId)
+        setSalesOrders(projectSO)
+      }
+
+      // Fetch invoices for this project
+      const invResponse = await invoicesApi.getAll()
+      if (invResponse.data?.data?.invoices) {
+        const projectInv = invResponse.data.data.invoices.filter((inv: any) => inv.projectId === projectId)
+        setInvoices(projectInv)
+      }
+
+      // Fetch purchase orders for this project
+      const poResponse = await purchaseOrdersApi.getAll()
+      if (poResponse.data?.data?.purchaseOrders) {
+        const projectPO = poResponse.data.data.purchaseOrders.filter((po: any) => po.projectId === projectId)
+        setPurchaseOrders(projectPO)
+      }
+
+      // Fetch expenses for this project
+      const expResponse = await expensesApi.getAll()
+      if (expResponse.data?.data?.expenses) {
+        const projectExp = expResponse.data.data.expenses.filter((exp: any) => exp.projectId === projectId)
+        setExpenses(projectExp)
+      }
+    } catch (err) {
+      console.error('Failed to fetch project documents:', err)
+    } finally {
+      setDocumentsLoading(false)
+    }
+  }
 
   const fetchTeamMembers = async () => {
     try {
@@ -1340,13 +1383,49 @@ export function ProjectDetailPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle>Sales Orders</CardTitle>
-                    <CardDescription>Manage sales orders for this project</CardDescription>
+                    <CardDescription>Sales orders linked to this project</CardDescription>
                   </div>
-                  <Button icon={<ShoppingCart className="h-4 w-4" />}>New Sales Order</Button>
+                  <Button icon={<ShoppingCart className="h-4 w-4" />} onClick={() => navigate(`/sales-orders?project=${projectId}`)}>
+                    New Sales Order
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground text-center py-8">No sales orders yet</p>
+                {documentsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : salesOrders.length === 0 ? (
+                  <div className="text-center py-8">
+                    <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-sm text-muted-foreground">No sales orders for this project yet</p>
+                    <Button variant="outline" className="mt-4" onClick={() => navigate(`/sales-orders?project=${projectId}`)}>
+                      Create First Sales Order
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {salesOrders.map((order: any) => (
+                      <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3">
+                            <h4 className="font-semibold">{order.orderNumber}</h4>
+                            <Badge variant={order.status === 'APPROVED' ? 'default' : 'secondary'}>
+                              {order.status}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">{order.customerName}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {order.orderDate && new Date(order.orderDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-bold">₹{order.amount?.toLocaleString()}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
