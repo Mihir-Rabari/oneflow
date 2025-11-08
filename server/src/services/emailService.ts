@@ -43,12 +43,6 @@ class EmailService {
   }
 
   async sendEmail(to: string, subject: string, html: string): Promise<void> {
-    // In development, skip all actual email sending
-    if (env.NODE_ENV === 'development') {
-      logger.info(`📧 [DEV MODE] Email skipped - To: ${to}, Subject: ${subject}`);
-      return;
-    }
-    
     try {
       const mailOptions = {
         from: `${env.SMTP_FROM_NAME} <${env.SMTP_FROM_EMAIL}>`,
@@ -66,13 +60,6 @@ class EmailService {
   }
 
   async sendOTP(email: string, otp: string, name: string): Promise<void> {
-    // In development, skip actual email sending and just log the OTP
-    if (env.NODE_ENV === 'development') {
-      logger.info(` [DEV MODE] OTP for ${email}: ${otp}`);
-      logger.info(`Copy this OTP to verify your email: ${otp}`);
-      return;
-    }
-    
     const subject = 'Verify Your Email - OneFlow';
     const html = await this.loadTemplate('otp', { name, otp });
     
@@ -92,13 +79,6 @@ class EmailService {
   }
 
   async sendPasswordResetEmail(to: string, name: string, resetLink: string): Promise<void> {
-    // In development, skip actual email sending and just log the reset link
-    if (env.NODE_ENV === 'development') {
-      logger.info(`📧 [DEV MODE] Password reset link for ${to}:`);
-      logger.info(`🔗 ${resetLink}`);
-      return;
-    }
-    
     const html = await this.loadTemplate('password-reset', { name, resetLink });
     await this.sendEmail(to, 'Reset Your Password - OneFlow', html);
   }
@@ -110,13 +90,6 @@ class EmailService {
     password: string,
     role: string
   ): Promise<void> {
-    // In development, skip actual email sending
-    if (env.NODE_ENV === 'development') {
-      logger.info(`📧 [DEV MODE] New user credentials email for ${to}`);
-      logger.info(`   Email: ${email}, Password: ${password}, Role: ${role}`);
-      return;
-    }
-    
     const html = await this.loadTemplate('new-user-credentials', {
       name,
       email,
