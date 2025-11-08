@@ -1,7 +1,9 @@
 import { prisma } from '@/config/database';
 import { emailService } from '@/services/emailService';
+import { cacheService } from '@/config/redis';
 import { ProjectStatus, ProjectType } from '@oneflow/shared';
 import { BadRequestError, NotFoundError, ForbiddenError } from '@/utils/errors';
+import { logger } from '@/utils/logger';
 
 export class ProjectsService {
   async getAllProjects(
@@ -68,6 +70,28 @@ export class ProjectsService {
   }
 
   async getProjectById(projectId: string, userId: string, userRole: string) {
+    // Try cache first (30 minutes)
+    const cacheKey = `project:${projectId}`;
+    const cached = await cacheService.get(cacheKey);
+    
+    if (cached) {
+      logger.debug(`Project ${projectId} retrieved from cache`);
+      
+      // Still need to check access for cached data
+      if (userRole !== 'ADMIN') {
+        const hasAccess =
+          (cached as any).projectManagerId === userId ||
+          (cached as any).members.some((m: any) => m.userId === userId);
+
+        if (!hasAccess) {
+          throw new ForbiddenError('You do not have access to this project');
+        }
+      }
+      
+      return cached;
+    }
+
+    // Fetch from database
     const project = await prisma.project.findUnique({
       where: { id: projectId },
       include: {
@@ -115,12 +139,16 @@ export class ProjectsService {
     if (userRole !== 'ADMIN') {
       const hasAccess =
         project.projectManagerId === userId ||
-        project.members.some((m) => m.userId === userId);
+        project.members.some((m: any) => m.userId === userId);
 
       if (!hasAccess) {
         throw new ForbiddenError('You do not have access to this project');
       }
     }
+
+    // Cache for 30 minutes
+    await cacheService.set(cacheKey, project, 1800);
+    logger.debug(`Project ${projectId} cached for 30 minutes`);
 
     return project;
   }
@@ -249,6 +277,11 @@ export class ProjectsService {
       },
     });
 
+    // Invalidate project cache
+    await cacheService.del(`project:${projectId}`);
+    await cacheService.del(`project:${projectId}:stats`);
+    logger.debug(`Project ${projectId} cache invalidated after update`);
+
     return updatedProject;
   }
 
@@ -294,6 +327,11 @@ export class ProjectsService {
     await prisma.project.delete({
       where: { id: projectId },
     });
+
+    // Invalidate all project caches
+    await cacheService.del(`project:${projectId}`);
+    await cacheService.del(`project:${projectId}:stats`);
+    logger.info(`Project ${projectId} deleted and cache invalidated`);
 
     return { message: 'Project deleted successfully' };
   }
@@ -386,6 +424,16 @@ export class ProjectsService {
   }
 
   async getProjectStats(projectId: string) {
+    // Try cache first (5 minutes for stats as they change frequently)
+    const cacheKey = `project:${projectId}:stats`;
+    const cached = await cacheService.get(cacheKey);
+    
+    if (cached) {
+      logger.debug(`Project ${projectId} stats retrieved from cache`);
+      return cached;
+    }
+
+    // Fetch from database
     const [taskStats, timesheetStats, financialStats] = await Promise.all([
       prisma.task.groupBy({
         by: ['status'],
@@ -419,13 +467,13 @@ export class ProjectsService {
       return acc;
     }, {} as Record<string, number>);
 
-    return {
+    const stats = {
       tasks: {
         new: tasks.new || 0,
         inProgress: tasks.in_progress || 0,
         blocked: tasks.blocked || 0,
         done: tasks.done || 0,
-        total: Object.values(tasks).reduce((sum, count) => sum + count, 0),
+        total: Object.values(tasks).reduce((sum: number, count: any) => sum + (count as number), 0),
       },
       timesheets: {
         totalHours: timesheetStats._sum.hours || 0,
@@ -440,6 +488,12 @@ export class ProjectsService {
         expenses: financialStats?._count.expenses || 0,
       },
     };
+
+    // Cache for 5 minutes (stats change frequently)
+    await cacheService.set(cacheKey, stats, 300);
+    logger.debug(`Project ${projectId} stats cached for 5 minutes`);
+
+    return stats;
   }
 }
 
