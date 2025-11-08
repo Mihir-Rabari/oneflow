@@ -44,11 +44,23 @@ export function VendorBillsPage() {
     setLoading(true)
     try {
       const response = await vendorBillsApi.getAll()
+      console.log('VendorBills - Raw API response:', response)
+      
       if (response.error) throw new Error(response.error)
-      const billsData = response.data?.data || response.data || []
-      setBills(Array.isArray(billsData) ? billsData : [])
+      
+      let billsData: any[] = []
+      if (response.data?.data?.vendorBills && Array.isArray(response.data.data.vendorBills)) {
+        billsData = response.data.data.vendorBills
+      } else if (response.data?.vendorBills && Array.isArray(response.data.vendorBills)) {
+        billsData = response.data.vendorBills
+      } else if (Array.isArray(response.data)) {
+        billsData = response.data
+      }
+      
+      console.log('VendorBills - Parsed:', billsData.length)
+      setBills(billsData)
     } catch (err: any) {
-      console.error('Failed to load vendor bills:', err)
+      console.error('VendorBills - Failed:', err)
     } finally {
       setLoading(false)
     }

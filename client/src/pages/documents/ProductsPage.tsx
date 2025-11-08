@@ -34,11 +34,23 @@ export function ProductsPage() {
     setLoading(true)
     try {
       const response = await productsApi.getAll()
+      console.log('Products - Raw API response:', response)
+      
       if (response.error) throw new Error(response.error)
-      const productsData = response.data?.data || response.data || []
-      setProducts(Array.isArray(productsData) ? productsData : [])
+      
+      let productsData: any[] = []
+      if (response.data?.data?.products && Array.isArray(response.data.data.products)) {
+        productsData = response.data.data.products
+      } else if (response.data?.products && Array.isArray(response.data.products)) {
+        productsData = response.data.products
+      } else if (Array.isArray(response.data)) {
+        productsData = response.data
+      }
+      
+      console.log('Products - Parsed:', productsData.length)
+      setProducts(productsData)
     } catch (err: any) {
-      console.error('Failed to load products:', err)
+      console.error('Products - Failed:', err)
     } finally {
       setLoading(false)
     }

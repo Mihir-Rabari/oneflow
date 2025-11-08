@@ -46,11 +46,23 @@ export function PurchaseOrdersPage() {
     setLoading(true)
     try {
       const response = await purchaseOrdersApi.getAll()
+      console.log('PurchaseOrders - Raw API response:', response)
+      
       if (response.error) throw new Error(response.error)
-      const ordersData = response.data?.data || response.data || []
-      setOrders(Array.isArray(ordersData) ? ordersData : [])
+      
+      let ordersData: any[] = []
+      if (response.data?.data?.purchaseOrders && Array.isArray(response.data.data.purchaseOrders)) {
+        ordersData = response.data.data.purchaseOrders
+      } else if (response.data?.purchaseOrders && Array.isArray(response.data.purchaseOrders)) {
+        ordersData = response.data.purchaseOrders
+      } else if (Array.isArray(response.data)) {
+        ordersData = response.data
+      }
+      
+      console.log('PurchaseOrders - Parsed:', ordersData.length)
+      setOrders(ordersData)
     } catch (err: any) {
-      console.error('Failed to load orders:', err)
+      console.error('PurchaseOrders - Failed:', err)
     } finally {
       setLoading(false)
     }

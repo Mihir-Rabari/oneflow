@@ -45,11 +45,26 @@ export function ExpensesPage() {
     setLoading(true)
     try {
       const response = await expensesApi.getAll()
+      console.log('Expenses - Raw API response:', response)
+      
       if (response.error) throw new Error(response.error)
-      const expensesData = response.data?.data || response.data || []
-      setExpenses(Array.isArray(expensesData) ? expensesData : [])
+      
+      // Backend returns: { success: true, data: { expenses: [...], pagination: {...} } }
+      let expensesData: any[] = []
+      if (response.data?.data?.expenses && Array.isArray(response.data.data.expenses)) {
+        expensesData = response.data.data.expenses
+      } else if (response.data?.expenses && Array.isArray(response.data.expenses)) {
+        expensesData = response.data.expenses
+      } else if (Array.isArray(response.data)) {
+        expensesData = response.data
+      }
+      
+      console.log('Expenses - Parsed expenses:', expensesData)
+      console.log('Expenses - Count:', expensesData.length)
+      
+      setExpenses(expensesData)
     } catch (err: any) {
-      console.error('Failed to load expenses:', err)
+      console.error('Expenses - Failed to load:', err)
     } finally {
       setLoading(false)
     }

@@ -39,14 +39,28 @@ export function TeamPage() {
     
     try {
       const response = await usersApi.getAll()
+      console.log('Team - Raw API response:', response)
       
       if (response.error) {
         throw new Error(response.error)
       }
       
-      const membersData = response.data?.data || response.data || []
-      setTeamMembers(Array.isArray(membersData) ? membersData : [])
+      // Backend returns: { success: true, data: { users: [...], pagination: {...} } }
+      let membersData: any[] = []
+      if (response.data?.data?.users && Array.isArray(response.data.data.users)) {
+        membersData = response.data.data.users
+      } else if (response.data?.users && Array.isArray(response.data.users)) {
+        membersData = response.data.users
+      } else if (Array.isArray(response.data)) {
+        membersData = response.data
+      }
+      
+      console.log('Team - Parsed members:', membersData)
+      console.log('Team - Members count:', membersData.length)
+      
+      setTeamMembers(membersData)
     } catch (err: any) {
+      console.error('Team - Failed to load members:', err)
       setError(err.message || 'Failed to load team members')
     } finally {
       setLoading(false)

@@ -34,14 +34,28 @@ export function BillingPage() {
     
     try {
       const response = await billingApi.getInvoices()
+      console.log('Billing - Raw API response:', response)
       
       if (response.error) {
         throw new Error(response.error)
       }
       
-      const invoicesData = response.data?.data || response.data || []
-      setInvoices(Array.isArray(invoicesData) ? invoicesData : [])
+      // Backend returns: { success: true, data: { invoices: [...], pagination: {...} } }
+      let invoicesData: any[] = []
+      if (response.data?.data?.invoices && Array.isArray(response.data.data.invoices)) {
+        invoicesData = response.data.data.invoices
+      } else if (response.data?.invoices && Array.isArray(response.data.invoices)) {
+        invoicesData = response.data.invoices
+      } else if (Array.isArray(response.data)) {
+        invoicesData = response.data
+      }
+      
+      console.log('Billing - Parsed invoices:', invoicesData)
+      console.log('Billing - Invoices count:', invoicesData.length)
+      
+      setInvoices(invoicesData)
     } catch (err: any) {
+      console.error('Billing - Failed to load invoices:', err)
       setError(err.message || 'Failed to load invoices')
     } finally {
       setLoading(false)

@@ -49,14 +49,28 @@ export function SalesOrdersPage() {
     
     try {
       const response = await salesOrdersApi.getAll()
+      console.log('SalesOrders - Raw API response:', response)
       
       if (response.error) {
         throw new Error(response.error)
       }
       
-      const ordersData = response.data?.data || response.data || []
-      setOrders(Array.isArray(ordersData) ? ordersData : [])
+      // Backend returns: { success: true, data: { salesOrders: [...], pagination: {...} } }
+      let ordersData: any[] = []
+      if (response.data?.data?.salesOrders && Array.isArray(response.data.data.salesOrders)) {
+        ordersData = response.data.data.salesOrders
+      } else if (response.data?.salesOrders && Array.isArray(response.data.salesOrders)) {
+        ordersData = response.data.salesOrders
+      } else if (Array.isArray(response.data)) {
+        ordersData = response.data
+      }
+      
+      console.log('SalesOrders - Parsed:', ordersData)
+      console.log('SalesOrders - Count:', ordersData.length)
+      
+      setOrders(ordersData)
     } catch (err: any) {
+      console.error('SalesOrders - Failed to load:', err)
       setError(err.message || 'Failed to load sales orders')
     } finally {
       setLoading(false)
