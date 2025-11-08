@@ -18,11 +18,15 @@ import {
   Users, 
   User,
   DollarSign, 
-  Calendar, 
+  Calendar,
+  Clock, 
   Loader2,
   FileText,
   ShoppingCart,
-  Receipt
+  Receipt,
+  LayoutGrid,
+  GanttChartSquare,
+  Trash2
 } from "lucide-react"
 import { projectsApi, tasksApi } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
@@ -90,6 +94,9 @@ export function ProjectDetailPage() {
     clientName: "",
     budget: "",
   })
+  const [taskView, setTaskView] = useState<'kanban' | 'gantt'>('kanban')
+  const [editingTask, setEditingTask] = useState<any>(null)
+  const [isEditTaskOpen, setIsEditTaskOpen] = useState(false)
 
   useEffect(() => {
     if (projectId) {
@@ -245,6 +252,79 @@ export function ProjectDetailPage() {
       budget: project.budget?.toString() || "",
     })
     setIsEditDialogOpen(true)
+  }
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (!confirm('Are you sure you want to delete this task?')) return
+
+    try {
+      const response = await tasksApi.delete(taskId)
+      if (response.error) {
+        throw new Error(response.error)
+      }
+      fetchTasks()
+    } catch (err: any) {
+      console.error('Failed to delete task:', err)
+    }
+  }
+
+  const handleEditTask = (task: any) => {
+    setEditingTask(task)
+    setTaskFormData({
+      title: task.title,
+      description: task.description || "",
+      priority: task.priority,
+      assignedToId: task.assignedToId || "",
+      estimatedHours: task.estimatedHours?.toString() || "",
+    })
+    setDueDate(task.dueDate ? new Date(task.dueDate) : undefined)
+    setIsEditTaskOpen(true)
+  }
+
+  const handleUpdateTask = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingTask) return
+
+    setFormError(null)
+    setUpdateLoading(true)
+
+    try {
+      const payload: any = {
+        title: taskFormData.title.trim(),
+        description: taskFormData.description.trim(),
+        priority: taskFormData.priority,
+      }
+
+      if (taskFormData.estimatedHours) payload.estimatedHours = Number(taskFormData.estimatedHours)
+      if (dueDate) payload.dueDate = dueDate.toISOString()
+      if (taskFormData.assignedToId) payload.assignedToId = taskFormData.assignedToId
+
+      const response = await tasksApi.update(editingTask.id, payload)
+      if (response.error) {
+        throw new Error(response.error)
+      }
+
+      setIsEditTaskOpen(false)
+      setEditingTask(null)
+      resetTaskForm()
+      fetchTasks()
+    } catch (err: any) {
+      setFormError(err.message || 'Failed to update task')
+    } finally {
+      setUpdateLoading(false)
+    }
+  }
+
+  const handleTaskStatusChange = async (taskId: string, newStatus: string) => {
+    try {
+      const response = await tasksApi.update(taskId, { status: newStatus })
+      if (response.error) {
+        throw new Error(response.error)
+      }
+      fetchTasks()
+    } catch (err: any) {
+      console.error('Failed to update task status:', err)
+    }
   }
 
   if (loading) {
@@ -461,7 +541,27 @@ export function ProjectDetailPage() {
           {/* Tasks Tab */}
           <TabsContent value="tasks" className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Tasks</h2>
+              <div className="flex items-center gap-4">
+                <h2 className="text-xl font-semibold">Tasks</h2>
+                <div className="flex items-center gap-2 border rounded-lg p-1">
+                  <Button
+                    variant={taskView === 'kanban' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setTaskView('kanban')}
+                  >
+                    <LayoutGrid className="h-4 w-4 mr-2" />
+                    Kanban
+                  </Button>
+                  <Button
+                    variant={taskView === 'gantt' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setTaskView('gantt')}
+                  >
+                    <GanttChartSquare className="h-4 w-4 mr-2" />
+                    Gantt
+                  </Button>
+                </div>
+              </div>
               <Dialog open={isTaskDialogOpen} onOpenChange={handleTaskDialogChange}>
                 <DialogTrigger asChild>
                   <Button icon={<Plus className="h-4 w-4" />}>New Task</Button>
@@ -558,12 +658,98 @@ export function ProjectDetailPage() {
               </Dialog>
             </div>
 
+            {/* Edit Task Dialog */}
+            <Dialog open={isEditTaskOpen} onOpenChange={setIsEditTaskOpen}>
+              <DialogContent>
+                <form onSubmit={handleUpdateTask} className="space-y-4">
+                  <DialogHeader>
+                    <DialogTitle>Edit Task</DialogTitle>
+                    <DialogDescription>Update task details</DialogDescription>
+                  </DialogHeader>
+
+                  {formError && (
+                    <div className="rounded-lg border border-destructive/50 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                      {formError}
+                    </div>
+                  )}
+
+                  <div className="grid gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-task-title">Task title</Label>
+                      <Input
+                        id="edit-task-title"
+                        value={taskFormData.title}
+                        onChange={(e) => setTaskFormData((prev) => ({ ...prev, title: e.target.value }))}
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-task-description">Description</Label>
+                      <Textarea
+                        id="edit-task-description"
+                        value={taskFormData.description}
+                        onChange={(e) => setTaskFormData((prev) => ({ ...prev, description: e.target.value }))}
+                        rows={3}
+                      />
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Priority</Label>
+                        <Select
+                          value={taskFormData.priority}
+                          onValueChange={(value) => setTaskFormData((prev) => ({ ...prev, priority: value as TaskPriorityType }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={TaskPriority.LOW}>Low</SelectItem>
+                            <SelectItem value={TaskPriority.MEDIUM}>Medium</SelectItem>
+                            <SelectItem value={TaskPriority.HIGH}>High</SelectItem>
+                            <SelectItem value={TaskPriority.URGENT}>Urgent</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-estimated-hours">Estimated hours</Label>
+                        <Input
+                          id="edit-estimated-hours"
+                          type="number"
+                          min="0"
+                          step="0.5"
+                          value={taskFormData.estimatedHours}
+                          onChange={(e) => setTaskFormData((prev) => ({ ...prev, estimatedHours: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Due date</Label>
+                      <DatePicker date={dueDate} onSelect={setDueDate} placeholder="Pick due date" />
+                    </div>
+                  </div>
+
+                  <DialogFooter className="gap-2">
+                    <Button type="button" variant="outline" onClick={() => setIsEditTaskOpen(false)} disabled={updateLoading}>
+                      Cancel
+                    </Button>
+                    <Button type="submit" loading={updateLoading}>
+                      Update Task
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+
             {/* Kanban Board */}
             {tasksLoading ? (
               <div className="flex items-center justify-center h-64">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
-            ) : (
+            ) : taskView === 'kanban' ? (
               <div className="grid gap-4 md:grid-cols-4">
                 {/* New Column */}
                 <div className="space-y-3">
@@ -573,23 +759,45 @@ export function ProjectDetailPage() {
                   </div>
                   <div className="space-y-2">
                     {(tasks.new || []).map((task: any) => (
-                      <Card 
-                        key={task.id} 
-                        className="cursor-pointer hover:shadow-md transition-shadow"
-                        onClick={() => navigate(`/tasks/${task.id}`)}
-                      >
+                      <Card key={task.id} className="group relative hover:shadow-md transition-shadow">
                         <CardHeader className="p-4">
                           <div className="flex items-start justify-between gap-2">
-                            <CardTitle className="text-sm font-medium line-clamp-2">{task.title}</CardTitle>
-                            <Badge variant={priorityColors[task.priority as keyof typeof priorityColors]}>
-                              {task.priority?.toLowerCase()}
-                            </Badge>
+                            <div className="flex-1 cursor-pointer" onClick={() => navigate(`/tasks/${task.id}`)}>
+                              <CardTitle className="text-sm font-medium line-clamp-2">{task.title}</CardTitle>
+                              <Badge variant={priorityColors[task.priority as keyof typeof priorityColors]} className="mt-2">
+                                {task.priority?.toLowerCase()}
+                              </Badge>
+                              {task.description && (
+                                <CardDescription className="line-clamp-2 text-xs mt-2">
+                                  {task.description}
+                                </CardDescription>
+                              )}
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleEditTask(task)
+                                }}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleDeleteTask(task.id)
+                                }}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </div>
-                          {task.description && (
-                            <CardDescription className="line-clamp-2 text-xs">
-                              {task.description}
-                            </CardDescription>
-                          )}
                         </CardHeader>
                       </Card>
                     ))}
@@ -604,23 +812,45 @@ export function ProjectDetailPage() {
                   </div>
                   <div className="space-y-2">
                     {(tasks.inProgress || []).map((task: any) => (
-                      <Card 
-                        key={task.id} 
-                        className="cursor-pointer hover:shadow-md transition-shadow"
-                        onClick={() => navigate(`/tasks/${task.id}`)}
-                      >
+                      <Card key={task.id} className="group relative hover:shadow-md transition-shadow">
                         <CardHeader className="p-4">
                           <div className="flex items-start justify-between gap-2">
-                            <CardTitle className="text-sm font-medium line-clamp-2">{task.title}</CardTitle>
-                            <Badge variant={priorityColors[task.priority as keyof typeof priorityColors]}>
-                              {task.priority?.toLowerCase()}
-                            </Badge>
+                            <div className="flex-1 cursor-pointer" onClick={() => navigate(`/tasks/${task.id}`)}>
+                              <CardTitle className="text-sm font-medium line-clamp-2">{task.title}</CardTitle>
+                              <Badge variant={priorityColors[task.priority as keyof typeof priorityColors]} className="mt-2">
+                                {task.priority?.toLowerCase()}
+                              </Badge>
+                              {task.description && (
+                                <CardDescription className="line-clamp-2 text-xs mt-2">
+                                  {task.description}
+                                </CardDescription>
+                              )}
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleEditTask(task)
+                                }}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleDeleteTask(task.id)
+                                }}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </div>
-                          {task.description && (
-                            <CardDescription className="line-clamp-2 text-xs">
-                              {task.description}
-                            </CardDescription>
-                          )}
                         </CardHeader>
                       </Card>
                     ))}
@@ -635,23 +865,45 @@ export function ProjectDetailPage() {
                   </div>
                   <div className="space-y-2">
                     {(tasks.blocked || []).map((task: any) => (
-                      <Card 
-                        key={task.id} 
-                        className="cursor-pointer hover:shadow-md transition-shadow"
-                        onClick={() => navigate(`/tasks/${task.id}`)}
-                      >
+                      <Card key={task.id} className="group relative hover:shadow-md transition-shadow">
                         <CardHeader className="p-4">
                           <div className="flex items-start justify-between gap-2">
-                            <CardTitle className="text-sm font-medium line-clamp-2">{task.title}</CardTitle>
-                            <Badge variant={priorityColors[task.priority as keyof typeof priorityColors]}>
-                              {task.priority?.toLowerCase()}
-                            </Badge>
+                            <div className="flex-1 cursor-pointer" onClick={() => navigate(`/tasks/${task.id}`)}>
+                              <CardTitle className="text-sm font-medium line-clamp-2">{task.title}</CardTitle>
+                              <Badge variant={priorityColors[task.priority as keyof typeof priorityColors]} className="mt-2">
+                                {task.priority?.toLowerCase()}
+                              </Badge>
+                              {task.description && (
+                                <CardDescription className="line-clamp-2 text-xs mt-2">
+                                  {task.description}
+                                </CardDescription>
+                              )}
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleEditTask(task)
+                                }}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleDeleteTask(task.id)
+                                }}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </div>
-                          {task.description && (
-                            <CardDescription className="line-clamp-2 text-xs">
-                              {task.description}
-                            </CardDescription>
-                          )}
                         </CardHeader>
                       </Card>
                     ))}
@@ -666,29 +918,125 @@ export function ProjectDetailPage() {
                   </div>
                   <div className="space-y-2">
                     {(tasks.done || []).map((task: any) => (
-                      <Card 
-                        key={task.id} 
-                        className="cursor-pointer hover:shadow-md transition-shadow"
-                        onClick={() => navigate(`/tasks/${task.id}`)}
-                      >
+                      <Card key={task.id} className="group relative hover:shadow-md transition-shadow">
                         <CardHeader className="p-4">
                           <div className="flex items-start justify-between gap-2">
-                            <CardTitle className="text-sm font-medium line-clamp-2">{task.title}</CardTitle>
-                            <Badge variant={priorityColors[task.priority as keyof typeof priorityColors]}>
-                              {task.priority?.toLowerCase()}
-                            </Badge>
+                            <div className="flex-1 cursor-pointer" onClick={() => navigate(`/tasks/${task.id}`)}>
+                              <CardTitle className="text-sm font-medium line-clamp-2">{task.title}</CardTitle>
+                              <Badge variant={priorityColors[task.priority as keyof typeof priorityColors]} className="mt-2">
+                                {task.priority?.toLowerCase()}
+                              </Badge>
+                              {task.description && (
+                                <CardDescription className="line-clamp-2 text-xs mt-2">
+                                  {task.description}
+                                </CardDescription>
+                              )}
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleEditTask(task)
+                                }}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleDeleteTask(task.id)
+                                }}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </div>
-                          {task.description && (
-                            <CardDescription className="line-clamp-2 text-xs">
-                              {task.description}
-                            </CardDescription>
-                          )}
                         </CardHeader>
                       </Card>
                     ))}
                   </div>
                 </div>
               </div>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Gantt View</CardTitle>
+                  <CardDescription>Timeline view of all tasks</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {Object.entries(tasks).flatMap(([status, taskList]: [string, any]) => 
+                      (taskList || []).map((task: any) => (
+                        <div key={task.id} className="flex items-center gap-4 p-3 border rounded-lg hover:bg-accent/50 transition-colors">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-medium text-sm">{task.title}</h4>
+                              <Badge variant={priorityColors[task.priority as keyof typeof priorityColors]} className="text-xs">
+                                {task.priority?.toLowerCase()}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs capitalize">
+                                {status.replace(/([A-Z])/g, ' $1').trim().toLowerCase()}
+                              </Badge>
+                            </div>
+                            {task.description && (
+                              <p className="text-xs text-muted-foreground line-clamp-1">{task.description}</p>
+                            )}
+                            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                              {task.dueDate && (
+                                <div className="flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  {new Date(task.dueDate).toLocaleDateString()}
+                                </div>
+                              )}
+                              {task.estimatedHours && (
+                                <div className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {task.estimatedHours}h
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => navigate(`/tasks/${task.id}`)}
+                            >
+                              <ArrowLeft className="h-4 w-4 rotate-180" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => handleEditTask(task)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive"
+                              onClick={() => handleDeleteTask(task.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                    {Object.values(tasks).every((taskList: any) => !taskList || taskList.length === 0) && (
+                      <p className="text-sm text-muted-foreground text-center py-8">No tasks yet</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             )}
           </TabsContent>
 
