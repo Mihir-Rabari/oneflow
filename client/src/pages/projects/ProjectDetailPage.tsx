@@ -1110,74 +1110,145 @@ export function ProjectDetailPage() {
             ) : (
               <Card>
                 <CardHeader>
-                  <CardTitle>Gantt View</CardTitle>
-                  <CardDescription>Timeline view of all tasks</CardDescription>
+                  <CardTitle>Gantt Chart</CardTitle>
+                  <CardDescription>Timeline visualization of task schedules</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <div className="space-y-2">
+                    {/* Timeline Header */}
+                    <div className="flex items-center gap-2 border-b pb-2">
+                      <div className="w-48 font-semibold text-sm">Task</div>
+                      <div className="flex-1 flex justify-between text-xs text-muted-foreground px-4">
+                        <span>Today</span>
+                        <span>+7 days</span>
+                        <span>+14 days</span>
+                        <span>+21 days</span>
+                        <span>+30 days</span>
+                      </div>
+                    </div>
+
+                    {/* Task Rows */}
                     {Object.entries(tasks).flatMap(([status, taskList]: [string, any]) => 
-                      (taskList || []).map((task: any) => (
-                        <div key={task.id} className="flex items-center gap-4 p-3 border rounded-lg hover:bg-accent/50 transition-colors">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-medium text-sm">{task.title}</h4>
-                              <Badge variant={priorityColors[task.priority as keyof typeof priorityColors]} className="text-xs">
-                                {task.priority?.toLowerCase()}
-                              </Badge>
-                              <Badge variant="outline" className="text-xs capitalize">
-                                {status.replace(/([A-Z])/g, ' $1').trim().toLowerCase()}
-                              </Badge>
+                      (taskList || []).map((task: any) => {
+                        const today = new Date()
+                        const dueDate = task.dueDate ? new Date(task.dueDate) : null
+                        const startDate = task.startDate ? new Date(task.startDate) : today
+                        
+                        // Calculate position and width
+                        const daysDiff = dueDate ? Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : 30
+                        const daysFromStart = Math.ceil((startDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+                        
+                        // Position as percentage of 30 days view
+                        const leftPercent = Math.max(0, Math.min(100, (daysFromStart / 30) * 100))
+                        const widthPercent = Math.max(5, Math.min(100 - leftPercent, (Math.abs(daysDiff - daysFromStart) / 30) * 100))
+                        
+                        // Status color
+                        const statusColors: { [key: string]: string } = {
+                          'new': 'bg-blue-500',
+                          'inProgress': 'bg-green-500',
+                          'blocked': 'bg-red-500',
+                          'done': 'bg-gray-400'
+                        }
+                        
+                        return (
+                          <div key={task.id} className="flex items-center gap-2 py-2 hover:bg-accent/50 rounded group">
+                            {/* Task Info */}
+                            <div className="w-48 flex items-center gap-2">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{task.title}</p>
+                                <div className="flex items-center gap-1 mt-0.5">
+                                  <Badge variant={priorityColors[task.priority as keyof typeof priorityColors]} className="text-xs h-4">
+                                    {task.priority?.toLowerCase()}
+                                  </Badge>
+                                </div>
+                              </div>
                             </div>
-                            {task.description && (
-                              <p className="text-xs text-muted-foreground line-clamp-1">{task.description}</p>
-                            )}
-                            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                              {task.dueDate && (
-                                <div className="flex items-center gap-1">
-                                  <Calendar className="h-3 w-3" />
-                                  {new Date(task.dueDate).toLocaleDateString()}
-                                </div>
+
+                            {/* Timeline Bar */}
+                            <div className="flex-1 relative h-8 bg-muted/30 rounded">
+                              {/* Grid lines */}
+                              <div className="absolute inset-0 flex">
+                                {[0, 25, 50, 75, 100].map((pos) => (
+                                  <div key={pos} className="absolute h-full border-l border-border/30" style={{ left: `${pos}%` }} />
+                                ))}
+                              </div>
+                              
+                              {/* Task Bar */}
+                              <div 
+                                className={`absolute h-6 top-1 rounded flex items-center px-2 text-white text-xs font-medium ${statusColors[status]} opacity-80 hover:opacity-100 transition-opacity cursor-pointer`}
+                                style={{ 
+                                  left: `${leftPercent}%`, 
+                                  width: `${widthPercent}%`,
+                                  minWidth: '60px'
+                                }}
+                                onClick={() => navigate(`/tasks/${task.id}`)}
+                                title={`${task.title}\nDue: ${dueDate ? dueDate.toLocaleDateString() : 'No due date'}\nStatus: ${status}`}
+                              >
+                                <span className="truncate">{task.estimatedHours ? `${task.estimatedHours}h` : ''}</span>
+                              </div>
+
+                              {/* Due date indicator */}
+                              {dueDate && (
+                                <div 
+                                  className="absolute top-0 h-8 w-0.5 bg-destructive"
+                                  style={{ left: `${Math.min(100, (daysDiff / 30) * 100)}%` }}
+                                  title={`Due: ${dueDate.toLocaleDateString()}`}
+                                />
                               )}
-                              {task.estimatedHours && (
-                                <div className="flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  {task.estimatedHours}h
-                                </div>
-                              )}
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => handleEditTask(task)}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-destructive"
+                                onClick={() => handleDeleteTask(task.id)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
                             </div>
                           </div>
-                          <div className="flex gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => navigate(`/tasks/${task.id}`)}
-                            >
-                              <ArrowLeft className="h-4 w-4 rotate-180" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => handleEditTask(task)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-destructive"
-                              onClick={() => handleDeleteTask(task.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))
+                        )
+                      })
                     )}
+                    
                     {Object.values(tasks).every((taskList: any) => !taskList || taskList.length === 0) && (
-                      <p className="text-sm text-muted-foreground text-center py-8">No tasks yet</p>
+                      <p className="text-sm text-muted-foreground text-center py-8">No tasks to display</p>
                     )}
+
+                    {/* Legend */}
+                    <div className="flex items-center gap-4 pt-4 border-t text-xs">
+                      <span className="font-semibold">Status:</span>
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                        <span>New</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 bg-green-500 rounded"></div>
+                        <span>In Progress</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 bg-red-500 rounded"></div>
+                        <span>Blocked</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 bg-gray-400 rounded"></div>
+                        <span>Done</span>
+                      </div>
+                      <div className="flex items-center gap-1 ml-4">
+                        <div className="w-0.5 h-4 bg-destructive"></div>
+                        <span>Due Date</span>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
