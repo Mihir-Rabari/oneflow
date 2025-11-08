@@ -113,14 +113,17 @@ export function SalesOrdersPage() {
         throw new Error(response.error)
       }
       
-      // Backend returns: { success: true, data: { salesOrders: [...], pagination: {...} } }
+      // Backend returns: { success: true, data: [...] } or { data: { salesOrders: [...] } }
       let ordersData: any[] = []
-      if (response.data?.data?.salesOrders && Array.isArray(response.data.data.salesOrders)) {
-        ordersData = response.data.data.salesOrders
+      
+      if (Array.isArray(response.data)) {
+        ordersData = response.data
+      } else if (response.data?.data && Array.isArray(response.data.data)) {
+        ordersData = response.data.data
       } else if (response.data?.salesOrders && Array.isArray(response.data.salesOrders)) {
         ordersData = response.data.salesOrders
-      } else if (Array.isArray(response.data)) {
-        ordersData = response.data
+      } else if (response.data?.data?.salesOrders && Array.isArray(response.data.data.salesOrders)) {
+        ordersData = response.data.data.salesOrders
       }
       
       console.log('SalesOrders - Parsed:', ordersData)
@@ -209,13 +212,19 @@ export function SalesOrdersPage() {
     setCreateLoading(true)
     try {
       const response = await salesOrdersApi.create(payload)
+      console.log('Create response:', response)
+      
       if (response.error) {
         throw new Error(response.error)
       }
+      
       setIsDialogOpen(false)
       resetForm()
-      fetchOrders()
+      
+      // Refresh the orders list
+      await fetchOrders()
     } catch (err: any) {
+      console.error('Failed to create sales order:', err)
       setFormError(err.message || 'Failed to create sales order')
     } finally {
       setCreateLoading(false)
@@ -248,7 +257,7 @@ export function SalesOrdersPage() {
 
   const filteredOrders = orders.filter((order) => {
     const matchesSearch = order.orderNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         order.customer?.toLowerCase().includes(searchQuery.toLowerCase())
+                         order.customerName?.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesStatus = statusFilter === "all" || order.status === statusFilter
     return matchesSearch && matchesStatus
   })
@@ -496,15 +505,15 @@ export function SalesOrdersPage() {
                     filteredOrders.map((order) => (
                       <TableRow key={order.id}>
                         <TableCell className="font-medium">{order.orderNumber}</TableCell>
-                        <TableCell>{order.customer}</TableCell>
-                        <TableCell>{order.project}</TableCell>
+                        <TableCell>{order.customerName}</TableCell>
+                        <TableCell>{order.project?.name || 'N/A'}</TableCell>
                         <TableCell>
                           <Badge variant={statusColors[order.status as keyof typeof statusColors]}>
                             {order.status}
                           </Badge>
                         </TableCell>
-                        <TableCell>{order.date}</TableCell>
-                        <TableCell className="text-right font-semibold">₹{order.amount}</TableCell>
+                        <TableCell>{order.orderDate ? new Date(order.orderDate).toLocaleDateString() : 'N/A'}</TableCell>
+                        <TableCell className="text-right font-semibold">₹{order.amount?.toLocaleString()}</TableCell>
                       </TableRow>
                     ))
                   )}
