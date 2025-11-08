@@ -20,20 +20,30 @@ export function AnalyticsPage() {
   const fetchAnalytics = async () => {
     setLoading(true)
     try {
-      const [dashboard, financial, teamPerf] = await Promise.all([
-        analyticsApi.getDashboardStats(),
-        analyticsApi.getFinancialReport(),
-        analyticsApi.getTeamPerformance(),
-      ])
-
+      // Dashboard stats are accessible to all users
+      const dashboard = await analyticsApi.getDashboardStats()
       if (!dashboard.error) {
         setDashboardData(dashboard.data?.data || dashboard.data)
       }
-      if (!financial.error) {
-        setFinancialData(financial.data?.data || financial.data)
+
+      // Financial and team performance data are only for admins/managers
+      // Fetch them separately and ignore errors for team members
+      try {
+        const financial = await analyticsApi.getFinancialReport()
+        if (!financial.error) {
+          setFinancialData(financial.data?.data || financial.data)
+        }
+      } catch (err) {
+        console.log('Financial data not accessible (team member)', err)
       }
-      if (!teamPerf.error) {
-        setTeamPerformanceData(teamPerf.data?.data || teamPerf.data)
+
+      try {
+        const teamPerf = await analyticsApi.getTeamPerformance()
+        if (!teamPerf.error) {
+          setTeamPerformanceData(teamPerf.data?.data || teamPerf.data)
+        }
+      } catch (err) {
+        console.log('Team performance data not accessible (team member)', err)
       }
     } catch (err) {
       console.error('Failed to load analytics:', err)
