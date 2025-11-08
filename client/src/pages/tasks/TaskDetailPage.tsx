@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { DatePicker } from "@/components/ui/date-picker"
 import { 
   ArrowLeft, 
   Edit, 
@@ -19,7 +21,7 @@ import {
   User,
   AlertCircle
 } from "lucide-react"
-import { tasksApi } from "@/lib/api"
+import { tasksApi, usersApi } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 
 // Task Status and Priority constants
@@ -64,12 +66,108 @@ export function TaskDetailPage() {
   const [isEditing, setIsEditing] = useState(false)
   const [updateLoading, setUpdateLoading] = useState(false)
   const [newComment, setNewComment] = useState("")
+  const [editFormData, setEditFormData] = useState({
+    title: "",
+    description: "",
+    priority: "MEDIUM" as TaskPriorityType,
+    estimatedHours: "",
+    assignedToId: "",
+  })
+  const [editDueDate, setEditDueDate] = useState<Date | undefined>()
+  const [formError, setFormError] = useState<string | null>(null)
+  const [teamMembers, setTeamMembers] = useState<any[]>([])
 
   useEffect(() => {
     if (taskId) {
       fetchTask()
+      fetchTeamMembers()
     }
   }, [taskId])
+
+  const fetchTeamMembers = async () => {
+    try {
+      const response = await usersApi.getAll()
+      if (response.error) return
+      
+      let usersData: any[] = []
+      if (response.data?.data?.users && Array.isArray(response.data.data.users)) {
+        usersData = response.data.data.users
+      } else if (response.data?.users && Array.isArray(response.data.users)) {
+        usersData = response.data.users
+      } else if (Array.isArray(response.data)) {
+        usersData = response.data
+      }
+      
+      setTeamMembers(usersData)
+    } catch (err) {
+      console.error('Failed to fetch team members:', err)
+    }
+  }
+
+  const openEditDialog = () => {
+    setEditFormData({
+      title: task.title || "",
+      description: task.description || "",
+      priority: task.priority || "MEDIUM",
+      estimatedHours: task.estimatedHours?.toString() || "",
+      assignedToId: task.assignedToId || "",
+    })
+    setEditDueDate(task.dueDate ? new Date(task.dueDate) : undefined)
+    setFormError(null)
+    setIsEditing(true)
+  }
+
+  const handleUpdateTask = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setFormError(null)
+
+    // Validate due date
+    if (editDueDate) {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const selectedDate = new Date(editDueDate)
+      selectedDate.setHours(0, 0, 0, 0)
+
+      if (selectedDate < today) {
+        setFormError('Due date cannot be in the past')
+        return
+      }
+
+      const oneYearFromNow = new Date()
+      oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1)
+      if (selectedDate > oneYearFromNow) {
+        setFormError('Due date cannot be more than 1 year in the future')
+        return
+      }
+    }
+
+    setUpdateLoading(true)
+    try {
+      const payload: any = {
+        title: editFormData.title.trim(),
+        description: editFormData.description.trim(),
+        priority: editFormData.priority,
+      }
+
+      if (editFormData.estimatedHours) payload.estimatedHours = Number(editFormData.estimatedHours)
+      if (editDueDate) payload.dueDate = editDueDate.toISOString()
+      if (editFormData.assignedToId && editFormData.assignedToId !== 'unassigned') {
+        payload.assignedToId = editFormData.assignedToId
+      }
+
+      const response = await tasksApi.update(taskId!, payload)
+      if (response.error) {
+        throw new Error(response.error)
+      }
+
+      setIsEditing(false)
+      fetchTask()
+    } catch (err: any) {
+      setFormError(err.message || 'Failed to update task')
+    } finally {
+      setUpdateLoading(false)
+    }
+  }
 
   const fetchTask = async () => {
     setLoading(true)
@@ -185,7 +283,8 @@ export function TaskDetailPage() {
                 <SelectItem value={TaskStatus.DONE}>Done</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" icon={<Edit className="h-4 w-4" />} onClick={() => setIsEditing(true)}>
+            <Button variant="outline" onClick={openEditDialog}>
+              <Edit className="h-4 w-4 mr-2" />
               Edit
             </Button>
           </div>
@@ -387,6 +486,109 @@ export function TaskDetailPage() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Edit Task Dialog */}
+        <Dialog open={isEditing} onOpenChange={setIsEditing}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Edit Task</DialogTitle>
+              <DialogDescription>Update task details</DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleUpdateTask} className="space-y-4">
+              {formError && (
+                <div className="bg-destructive/10 text-destructive p-3 rounded-md text-sm">
+                  {formError}
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-title">Task title</Label>
+                <Input
+                  id="edit-title"
+                  value={editFormData.title}
+                  onChange={(e) => setEditFormData((prev) => ({ ...prev, title: e.target.value }))}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-description">Description</Label>
+                <Textarea
+                  id="edit-description"
+                  value={editFormData.description}
+                  onChange={(e) => setEditFormData((prev) => ({ ...prev, description: e.target.value }))}
+                  rows={4}
+                />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Priority</Label>
+                  <Select
+                    value={editFormData.priority}
+                    onValueChange={(value) => setEditFormData((prev) => ({ ...prev, priority: value as TaskPriorityType }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={TaskPriority.LOW}>Low</SelectItem>
+                      <SelectItem value={TaskPriority.MEDIUM}>Medium</SelectItem>
+                      <SelectItem value={TaskPriority.HIGH}>High</SelectItem>
+                      <SelectItem value={TaskPriority.URGENT}>Urgent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-estimated-hours">Estimated hours</Label>
+                  <Input
+                    id="edit-estimated-hours"
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value={editFormData.estimatedHours}
+                    onChange={(e) => setEditFormData((prev) => ({ ...prev, estimatedHours: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Assign to</Label>
+                <Select
+                  value={editFormData.assignedToId}
+                  onValueChange={(value) => setEditFormData((prev) => ({ ...prev, assignedToId: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select team member (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unassigned">Unassigned</SelectItem>
+                    {teamMembers.map((member) => (
+                      <SelectItem key={member.id} value={member.id}>
+                        {member.name} - {member.role}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Due date</Label>
+                <DatePicker date={editDueDate} onSelect={setEditDueDate} placeholder="Pick due date" />
+              </div>
+
+              <DialogFooter className="gap-2">
+                <Button type="button" variant="outline" onClick={() => setIsEditing(false)} disabled={updateLoading}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={updateLoading}>
+                  {updateLoading ? 'Updating...' : 'Update Task'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   )
