@@ -26,18 +26,18 @@ router.get('/:userId', validate(userIdParamSchema), usersController.getUserById)
 // Get user stats
 router.get('/:userId/stats', validate(userIdParamSchema), usersController.getUserStats);
 
-// Create user (Admin & PM only)
+// Create user (Admin only)
 router.post(
   '/',
-  authorize(UserRole.ADMIN, UserRole.PROJECT_MANAGER),
+  authorize(UserRole.ADMIN),
   validate(createUserSchema),
   usersController.createUser
 );
 
-// Update user (Admin & PM only)
+// Update user (Admin only)
 router.patch(
   '/:userId',
-  authorize(UserRole.ADMIN, UserRole.PROJECT_MANAGER),
+  authorize(UserRole.ADMIN),
   validate(updateUserSchema),
   usersController.updateUser
 );
