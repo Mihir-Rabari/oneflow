@@ -169,25 +169,25 @@ export const billingApi = {
 // Sales Orders API
 export const salesOrdersApi = {
   getAll: (params?: { projectId?: string; status?: string }) =>
-    apiRequest(`/sales-orders?${new URLSearchParams(params as any)}`, { method: 'GET' }),
+    apiRequest(`/billing/sales-orders?${new URLSearchParams(params as any)}`, { method: 'GET' }),
 
   getById: (id: string) =>
-    apiRequest(`/sales-orders/${id}`, { method: 'GET' }),
+    apiRequest(`/billing/sales-orders/${id}`, { method: 'GET' }),
 
   create: (data: any) =>
-    apiRequest('/sales-orders', {
+    apiRequest('/billing/sales-orders', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
 
   update: (id: string, data: any) =>
-    apiRequest(`/sales-orders/${id}`, {
+    apiRequest(`/billing/sales-orders/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
 
   delete: (id: string) =>
-    apiRequest(`/sales-orders/${id}`, {
+    apiRequest(`/billing/sales-orders/${id}`, {
       method: 'DELETE',
     }),
 }
@@ -195,25 +195,25 @@ export const salesOrdersApi = {
 // Purchase Orders API
 export const purchaseOrdersApi = {
   getAll: (params?: { projectId?: string; status?: string }) =>
-    apiRequest(`/purchase-orders?${new URLSearchParams(params as any)}`, { method: 'GET' }),
+    apiRequest(`/billing/purchase-orders?${new URLSearchParams(params as any)}`, { method: 'GET' }),
 
   getById: (id: string) =>
-    apiRequest(`/purchase-orders/${id}`, { method: 'GET' }),
+    apiRequest(`/billing/purchase-orders/${id}`, { method: 'GET' }),
 
   create: (data: any) =>
-    apiRequest('/purchase-orders', {
+    apiRequest('/billing/purchase-orders', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
 
   update: (id: string, data: any) =>
-    apiRequest(`/purchase-orders/${id}`, {
+    apiRequest(`/billing/purchase-orders/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
 
   delete: (id: string) =>
-    apiRequest(`/purchase-orders/${id}`, {
+    apiRequest(`/billing/purchase-orders/${id}`, {
       method: 'DELETE',
     }),
 }
@@ -221,30 +221,30 @@ export const purchaseOrdersApi = {
 // Invoices API
 export const invoicesApi = {
   getAll: (params?: { projectId?: string; status?: string }) =>
-    apiRequest(`/invoices?${new URLSearchParams(params as any)}`, { method: 'GET' }),
+    apiRequest(`/billing/invoices?${new URLSearchParams(params as any)}`, { method: 'GET' }),
 
   getById: (id: string) =>
-    apiRequest(`/invoices/${id}`, { method: 'GET' }),
+    apiRequest(`/billing/invoices/${id}`, { method: 'GET' }),
 
   create: (data: any) =>
-    apiRequest('/invoices', {
+    apiRequest('/billing/invoices', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
 
   update: (id: string, data: any) =>
-    apiRequest(`/invoices/${id}`, {
+    apiRequest(`/billing/invoices/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
 
   delete: (id: string) =>
-    apiRequest(`/invoices/${id}`, {
+    apiRequest(`/billing/invoices/${id}`, {
       method: 'DELETE',
     }),
 
   updateStatus: (id: string, status: string) =>
-    apiRequest(`/invoices/${id}/status`, {
+    apiRequest(`/billing/invoices/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status }),
     }),
@@ -253,25 +253,25 @@ export const invoicesApi = {
 // Vendor Bills API
 export const vendorBillsApi = {
   getAll: () =>
-    apiRequest('/vendor-bills', { method: 'GET' }),
+    apiRequest('/billing/vendor-bills', { method: 'GET' }),
 
   getById: (id: string) =>
-    apiRequest(`/vendor-bills/${id}`, { method: 'GET' }),
+    apiRequest(`/billing/vendor-bills/${id}`, { method: 'GET' }),
 
   create: (data: any) =>
-    apiRequest('/vendor-bills', {
+    apiRequest('/billing/vendor-bills', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
 
   update: (id: string, data: any) =>
-    apiRequest(`/vendor-bills/${id}`, {
+    apiRequest(`/billing/vendor-bills/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
 
   delete: (id: string) =>
-    apiRequest(`/vendor-bills/${id}`, {
+    apiRequest(`/billing/vendor-bills/${id}`, {
       method: 'DELETE',
     }),
 }
