@@ -1,20 +1,36 @@
+console.log('=== SERVER STARTUP BEGIN ===');
+
 import app from './app';
 import { env } from './config/env';
 import { connectDatabase, disconnectDatabase } from './config/database';
 import { redis } from './config/redis';
 import { logger } from './utils/logger';
 
+console.log('=== Imports loaded ===');
+console.log('PORT from env:', env.PORT);
+
 const PORT = env.PORT || 4000;
+
+console.log('=== Final PORT:', PORT, '===');
 
 async function startServer() {
   try {
+    logger.info('🔄 Starting server initialization...');
+    logger.info(`📍 Port: ${PORT}`);
+    logger.info(`🌍 Environment: ${env.NODE_ENV}`);
+    
     // Connect to database
+    logger.info('🔄 Connecting to database...');
     await connectDatabase();
+    logger.info('✅ Database connection step completed');
 
     // Test Redis connection
+    logger.info('🔄 Testing Redis connection...');
     await redis.ping();
+    logger.info('✅ Redis ping successful');
 
     // Start server
+    logger.info('🔄 Starting HTTP server...');
     const server = app.listen(PORT, () => {
       logger.info(`🚀 Server running on port ${PORT}`);
       logger.info(`📝 Environment: ${env.NODE_ENV}`);
