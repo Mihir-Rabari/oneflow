@@ -89,7 +89,7 @@ export const projectsApi = {
 
   update: (id: string, data: any) =>
     apiRequest(`/projects/${id}`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify(data),
     }),
 
@@ -108,7 +108,7 @@ export const projectsApi = {
 // Tasks API
 export const tasksApi = {
   getByProject: (projectId: string) =>
-    apiRequest(`/projects/${projectId}/tasks`, { method: 'GET' }),
+    apiRequest(`/tasks/project/${projectId}/kanban`, { method: 'GET' }),
 
   getById: (taskId: string) =>
     apiRequest(`/tasks/${taskId}`, { method: 'GET' }),
@@ -121,7 +121,7 @@ export const tasksApi = {
 
   update: (id: string, data: any) =>
     apiRequest(`/tasks/${id}`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify(data),
     }),
 
@@ -150,7 +150,7 @@ export const timesheetsApi = {
 
   update: (id: string, data: any) =>
     apiRequest(`/timesheets/${id}`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify(data),
     }),
 
@@ -182,7 +182,7 @@ export const salesOrdersApi = {
 
   update: (id: string, data: any) =>
     apiRequest(`/sales-orders/${id}`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify(data),
     }),
 
@@ -208,7 +208,7 @@ export const purchaseOrdersApi = {
 
   update: (id: string, data: any) =>
     apiRequest(`/purchase-orders/${id}`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify(data),
     }),
 
@@ -234,7 +234,7 @@ export const invoicesApi = {
 
   update: (id: string, data: any) =>
     apiRequest(`/invoices/${id}`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify(data),
     }),
 
@@ -266,7 +266,7 @@ export const vendorBillsApi = {
 
   update: (id: string, data: any) =>
     apiRequest(`/vendor-bills/${id}`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify(data),
     }),
 
@@ -292,7 +292,7 @@ export const expensesApi = {
 
   update: (id: string, data: any) =>
     apiRequest(`/expenses/${id}`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify(data),
     }),
 
@@ -328,7 +328,7 @@ export const productsApi = {
 
   update: (id: string, data: any) =>
     apiRequest(`/products/${id}`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify(data),
     }),
 
@@ -367,7 +367,7 @@ export const usersApi = {
 
   updateProfile: (data: any) =>
     apiRequest('/users/profile', {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify(data),
     }),
 
