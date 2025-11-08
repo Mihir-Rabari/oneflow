@@ -68,12 +68,6 @@ class EmailService {
   }
 
   async sendWelcomeEmail(to: string, name: string): Promise<void> {
-    // In development, skip actual email sending
-    if (env.NODE_ENV === 'development') {
-      logger.info(`📧 [DEV MODE] Welcome email would be sent to ${to}`);
-      return;
-    }
-    
     const html = await this.loadTemplate('welcome', { name });
     await this.sendEmail(to, 'Welcome to OneFlow!', html);
   }
