@@ -16,6 +16,7 @@ import projectsRoutes from './modules/projects/projects.routes';
 import tasksRoutes from './modules/tasks/tasks.routes';
 import timesheetsRoutes from './modules/timesheets/timesheets.routes';
 import billingRoutes from './modules/billing/billing.routes';
+import analyticsRoutes from './modules/analytics/analytics.routes';
 
 const app: Application = express();
 
@@ -81,6 +82,7 @@ app.use('/projects', projectsRoutes);
 app.use('/tasks', tasksRoutes);
 app.use('/timesheets', timesheetsRoutes);
 app.use('/billing', billingRoutes);
+app.use('/analytics', analyticsRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
