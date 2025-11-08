@@ -24,22 +24,22 @@ export function DashboardPage() {
     setError(null)
     
     try {
-      const [projectsRes, metricsRes] = await Promise.all([
+      const [projectsRes, dashboardRes] = await Promise.all([
         projectsApi.getAll(),
-        analyticsApi.getProjectMetrics()
+        analyticsApi.getDashboardStats()
       ])
 
       if (projectsRes.error) throw new Error(projectsRes.error)
-      if (metricsRes.error) throw new Error(metricsRes.error)
+      if (dashboardRes.error) throw new Error(dashboardRes.error)
 
       const projects = projectsRes.data?.data || []
-      const metrics = metricsRes.data?.data || {}
+      const dashboardStats = dashboardRes.data?.data || {}
 
       setStats({
         activeProjects: projects.filter((p: any) => p.status === 'ACTIVE').length,
-        hoursLogged: metrics.totalHours || 0,
-        revenue: metrics.totalRevenue || 0,
-        profit: metrics.totalProfit || 0
+        hoursLogged: dashboardStats.totalHours || 0,
+        revenue: dashboardStats.totalRevenue || 0,
+        profit: dashboardStats.totalProfit || 0
       })
       
       setRecentProjects(projects.slice(0, 4))

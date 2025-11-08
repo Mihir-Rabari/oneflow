@@ -199,17 +199,17 @@ export const billingApi = {
 
 // Analytics API
 export const analyticsApi = {
-  getProjectMetrics: () =>
-    apiRequest('/analytics/projects', { method: 'GET' }),
+  getDashboardStats: () =>
+    apiRequest('/analytics/dashboard', { method: 'GET' }),
 
-  getTimesheetMetrics: () =>
-    apiRequest('/analytics/timesheets', { method: 'GET' }),
+  getFinancialReport: (params?: any) =>
+    apiRequest(`/analytics/financial-report?${new URLSearchParams(params)}`, { method: 'GET' }),
 
-  getRevenueMetrics: () =>
-    apiRequest('/analytics/revenue', { method: 'GET' }),
+  getTeamPerformance: (params?: any) =>
+    apiRequest(`/analytics/team-performance?${new URLSearchParams(params)}`, { method: 'GET' }),
 
-  getTeamPerformance: () =>
-    apiRequest('/analytics/team', { method: 'GET' }),
+  getProjectTimeline: (projectId: string) =>
+    apiRequest(`/analytics/project-timeline/${projectId}`, { method: 'GET' }),
 }
 
 // Users/Team API
