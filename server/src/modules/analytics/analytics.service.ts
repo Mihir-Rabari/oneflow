@@ -8,6 +8,8 @@ export class AnalyticsService {
     const isAdmin = userRole === 'ADMIN';
     const isSalesFinance = userRole === 'SALES_FINANCE';
 
+    console.log('📊 Dashboard Stats Request:', { userId, userRole, isAdmin, isSalesFinance });
+
     // Get user's accessible projects
     const projectFilter: any = isAdmin || isSalesFinance
       ? {}
@@ -17,6 +19,8 @@ export class AnalyticsService {
             { members: { some: { userId } } },
           ],
         };
+
+    console.log('🔍 Project Filter:', JSON.stringify(projectFilter));
 
     const [
       totalProjects,
@@ -102,7 +106,19 @@ export class AnalyticsService {
       }),
     ]);
 
-    return {
+    console.log('📈 Query Results:', {
+      totalProjects,
+      activeProjects,
+      totalTasks,
+      completedTasks,
+      totalUsers,
+      totalHoursLogged: totalHoursLogged._sum.hours,
+      totalRevenue: totalRevenue._sum.revenue,
+      totalSpent: totalSpent._sum.spent,
+      recentProjectsCount: recentProjects.length
+    });
+
+    const result = {
       overview: {
         totalProjects,
         activeProjects,
@@ -120,6 +136,10 @@ export class AnalyticsService {
       recentProjects,
       upcomingDeadlines,
     };
+
+    console.log('✅ Returning Dashboard Stats:', JSON.stringify(result, null, 2));
+
+    return result;
   }
 
   // Financial reports
