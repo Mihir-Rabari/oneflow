@@ -191,17 +191,37 @@ class EmailService {
 
   async sendTaskAssignment(
     to: string,
-    name: string,
+    assignedToName: string,
     taskTitle: string,
     projectName: string,
-    dueDate?: string
+    taskId: string,
+    options?: {
+      taskDescription?: string;
+      priority?: string;
+      dueDate?: string;
+      estimatedHours?: number;
+      assignedByName?: string;
+    }
   ): Promise<void> {
+    // Priority color mapping
+    const priorityColors: { [key: string]: string } = {
+      LOW: '#6b7280',
+      MEDIUM: '#3b82f6',
+      HIGH: '#f59e0b',
+      URGENT: '#ef4444',
+    };
+
     const html = await this.loadTemplate('task-assignment', {
-      name,
+      assignedToName,
       taskTitle,
+      taskDescription: options?.taskDescription || '',
       projectName,
-      dueDate,
-      tasksUrl: `${env.FRONTEND_URL}/tasks`,
+      priority: options?.priority || 'MEDIUM',
+      priorityColor: priorityColors[options?.priority || 'MEDIUM'],
+      dueDate: options?.dueDate || '',
+      estimatedHours: options?.estimatedHours || 0,
+      assignedByName: options?.assignedByName || 'System',
+      taskUrl: `${env.FRONTEND_URL}/tasks/${taskId}`,
     });
     await this.sendEmail(to, `New Task Assigned: ${taskTitle}`, html);
   }

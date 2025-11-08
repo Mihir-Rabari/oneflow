@@ -135,7 +135,6 @@ export class TasksService {
       data: {
         ...data,
         status: TaskStatus.NEW,
-        progress: 0,
       },
       include: {
         assignedTo: {
@@ -143,6 +142,9 @@ export class TasksService {
         },
         project: {
           select: { id: true, name: true },
+        },
+        createdBy: {
+          select: { id: true, name: true, email: true },
         },
       },
     });
@@ -156,7 +158,15 @@ export class TasksService {
         task.assignedTo.email,
         task.assignedTo.name,
         task.title,
-        task.project.name
+        task.project.name,
+        task.id,
+        {
+          taskDescription: task.description || undefined,
+          priority: task.priority,
+          dueDate: task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : undefined,
+          estimatedHours: task.estimatedHours || undefined,
+          assignedByName: task.createdBy?.name || 'System',
+        }
       );
     }
 

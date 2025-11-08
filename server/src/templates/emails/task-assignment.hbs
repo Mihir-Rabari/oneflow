@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Task Assigned</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #16a34a 0%, #3ecf8e 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+    <h1 style="color: white; margin: 0;">📋 New Task Assigned</h1>
+  </div>
+  
+  <div style="background: #f8fafc; padding: 30px; border-radius: 0 0 10px 10px;">
+    <h2 style="color: #0b1220;">Hi {{assignedToName}},</h2>
+    
+    <p>You have been assigned a new task in project <strong>{{projectName}}</strong>.</p>
+    
+    <div style="background: white; border-left: 4px solid #16a34a; padding: 20px; margin: 20px 0; border-radius: 4px;">
+      <h3 style="margin-top: 0; color: #16a34a;">{{taskTitle}}</h3>
+      
+      {{#if taskDescription}}
+      <p style="color: #4b5563; margin: 15px 0;">{{taskDescription}}</p>
+      {{/if}}
+      
+      <table style="width: 100%; margin-top: 20px; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px 0; color: #6b7280; font-size: 14px;"><strong>Priority:</strong></td>
+          <td style="padding: 8px 0; text-align: right;">
+            <span style="background: {{priorityColor}}; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold;">{{priority}}</span>
+          </td>
+        </tr>
+        {{#if dueDate}}
+        <tr>
+          <td style="padding: 8px 0; color: #6b7280; font-size: 14px;"><strong>Due Date:</strong></td>
+          <td style="padding: 8px 0; text-align: right; color: #0b1220;">{{dueDate}}</td>
+        </tr>
+        {{/if}}
+        {{#if estimatedHours}}
+        <tr>
+          <td style="padding: 8px 0; color: #6b7280; font-size: 14px;"><strong>Estimated Hours:</strong></td>
+          <td style="padding: 8px 0; text-align: right; color: #0b1220;">{{estimatedHours}} hours</td>
+        </tr>
+        {{/if}}
+        <tr>
+          <td style="padding: 8px 0; color: #6b7280; font-size: 14px;"><strong>Assigned By:</strong></td>
+          <td style="padding: 8px 0; text-align: right; color: #0b1220;">{{assignedByName}}</td>
+        </tr>
+      </table>
+    </div>
+    
+    <p>Please review the task details and start working on it as soon as possible.</p>
+    
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="{{taskUrl}}" style="background: #16a34a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">View Task Details</a>
+    </div>
+    
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+    
+    <p style="font-size: 12px; color: #6b7280; text-align: center;">
+      © 2024 OneFlow. All rights reserved.
+    </p>
+  </div>
+</body>
+</html>
