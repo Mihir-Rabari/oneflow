@@ -15,6 +15,7 @@ import usersRoutes from './modules/users/users.routes';
 import projectsRoutes from './modules/projects/projects.routes';
 import tasksRoutes from './modules/tasks/tasks.routes';
 import timesheetsRoutes from './modules/timesheets/timesheets.routes';
+import billingRoutes from './modules/billing/billing.routes';
 
 const app: Application = express();
 
@@ -79,7 +80,7 @@ app.use('/users', usersRoutes);
 app.use('/projects', projectsRoutes);
 app.use('/tasks', tasksRoutes);
 app.use('/timesheets', timesheetsRoutes);
-// TODO: Add billing, analytics routes later
+app.use('/billing', billingRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
