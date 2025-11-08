@@ -168,8 +168,8 @@ export const billingApi = {
 
 // Sales Orders API
 export const salesOrdersApi = {
-  getAll: () =>
-    apiRequest('/sales-orders', { method: 'GET' }),
+  getAll: (params?: { projectId?: string; status?: string }) =>
+    apiRequest(`/sales-orders?${new URLSearchParams(params as any)}`, { method: 'GET' }),
 
   getById: (id: string) =>
     apiRequest(`/sales-orders/${id}`, { method: 'GET' }),
@@ -194,8 +194,8 @@ export const salesOrdersApi = {
 
 // Purchase Orders API
 export const purchaseOrdersApi = {
-  getAll: () =>
-    apiRequest('/purchase-orders', { method: 'GET' }),
+  getAll: (params?: { projectId?: string; status?: string }) =>
+    apiRequest(`/purchase-orders?${new URLSearchParams(params as any)}`, { method: 'GET' }),
 
   getById: (id: string) =>
     apiRequest(`/purchase-orders/${id}`, { method: 'GET' }),
@@ -220,8 +220,8 @@ export const purchaseOrdersApi = {
 
 // Invoices API
 export const invoicesApi = {
-  getAll: () =>
-    apiRequest('/invoices', { method: 'GET' }),
+  getAll: (params?: { projectId?: string; status?: string }) =>
+    apiRequest(`/invoices?${new URLSearchParams(params as any)}`, { method: 'GET' }),
 
   getById: (id: string) =>
     apiRequest(`/invoices/${id}`, { method: 'GET' }),
