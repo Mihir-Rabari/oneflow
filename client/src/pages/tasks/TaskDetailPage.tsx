@@ -13,13 +13,22 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { DatePicker } from "@/components/ui/date-picker"
 import { 
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { 
   ArrowLeft, 
   Edit, 
   Clock, 
   Loader2,
   Calendar,
   User,
-  AlertCircle
+  AlertCircle,
+  Home
 } from "lucide-react"
 import { tasksApi, usersApi } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
@@ -246,6 +255,33 @@ export function TaskDetailPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        {/* Breadcrumbs */}
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink to="/dashboard">
+                <Home className="h-4 w-4" />
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            {task.project && (
+              <>
+                <BreadcrumbItem>
+                  <BreadcrumbLink to="/projects">Projects</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink to={`/projects/${task.project.id}`}>{task.project.name}</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+              </>
+            )}
+            <BreadcrumbItem>
+              <BreadcrumbPage>{task.title}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
