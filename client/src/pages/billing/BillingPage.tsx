@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -6,17 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, DollarSign, FileText, TrendingUp, AlertCircle } from "lucide-react"
+import { Plus, Search, DollarSign, FileText, TrendingUp, AlertCircle, Loader2 } from "lucide-react"
+import { billingApi } from "@/lib/api"
 
-const invoices = [
-  { id: "INV001", status: "Paid", method: "Credit card", customer: "Acme Corp", description: "Website design services", amount: 250000, date: "Dec 1, 2025" },
-  { id: "INV002", status: "Pending", method: "PayPal", customer: "TechStart Inc", description: "Monthly subscription fee", amount: 150000, date: "Dec 3, 2025" },
-  { id: "INV003", status: "Unpaid", method: "Bank transfer", customer: "Global Solutions", description: "Consulting hours", amount: 350000, date: "Dec 5, 2025" },
-  { id: "INV004", status: "Paid", method: "Credit card", customer: "Innovate Ltd", description: "Software license renewal", amount: 450000, date: "Dec 6, 2025" },
-  { id: "INV005", status: "Paid", method: "PayPal", customer: "Digital Agency", description: "Custom development work", amount: 550000, date: "Dec 7, 2025" },
-  { id: "INV006", status: "Pending", method: "Bank transfer", customer: "Cloud Services", description: "Hosting and maintenance", amount: 200000, date: "Dec 8, 2025" },
-  { id: "INV007", status: "Overdue", method: "Credit card", customer: "StartupXYZ", description: "Training session package", amount: 300000, date: "Nov 15, 2025" },
-]
 
 const statusColors = {
   Paid: "default",
@@ -28,17 +20,43 @@ const statusColors = {
 export function BillingPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [invoices, setInvoices] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetchInvoices()
+  }, [])
+
+  const fetchInvoices = async () => {
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const response = await billingApi.getInvoices()
+      
+      if (response.error) {
+        throw new Error(response.error)
+      }
+      
+      setInvoices(response.data?.data || [])
+    } catch (err: any) {
+      setError(err.message || 'Failed to load invoices')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filteredInvoices = invoices.filter((invoice) => {
-    const matchesSearch = invoice.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         invoice.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         invoice.description.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesSearch = invoice.invoiceNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         invoice.customerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         invoice.description?.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesStatus = statusFilter === "all" || invoice.status === statusFilter
     return matchesSearch && matchesStatus
   })
 
-  const totalRevenue = invoices.filter(inv => inv.status === "Paid").reduce((sum, inv) => sum + inv.amount, 0)
-  const pendingAmount = invoices.filter(inv => inv.status === "Pending").reduce((sum, inv) => sum + inv.amount, 0)
+  const totalRevenue = invoices.filter(inv => inv.status === "PAID").reduce((sum, inv) => sum + (inv.totalAmount || 0), 0)
+  const totalPending = invoices.filter(inv => inv.status === "PENDING").reduce((sum, inv) => sum + (inv.totalAmount || 0), 0)
   const overdueAmount = invoices.filter(inv => inv.status === "Overdue").reduce((sum, inv) => sum + inv.amount, 0)
 
   const formatCurrency = (amount: number) => {
@@ -47,6 +65,27 @@ export function BillingPage() {
       currency: 'INR',
       maximumFractionDigits: 0
     }).format(amount)
+  }
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="text-center py-12">
+          <p className="text-red-500">{error}</p>
+          <button onClick={fetchInvoices} className="mt-4 text-primary">Retry</button>
+        </div>
+      </DashboardLayout>
+    )
   }
 
   return (

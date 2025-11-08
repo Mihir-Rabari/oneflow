@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,18 +9,10 @@ import { DatePicker } from "@/components/ui/date-picker"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Clock, Calendar as CalendarIcon } from "lucide-react"
+import { Plus, Clock, Calendar as CalendarIcon, Loader2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { timesheetsApi } from "@/lib/api"
 
-const timesheets = [
-  { id: "1", project: "Website Redesign", task: "Homepage design", date: "Dec 8, 2025", hours: 6, billable: true, status: "approved" },
-  { id: "2", project: "Mobile App", task: "API integration", date: "Dec 8, 2025", hours: 8, billable: true, status: "pending" },
-  { id: "3", project: "CRM Integration", task: "Setup development environment", date: "Dec 7, 2025", hours: 4, billable: false, status: "approved" },
-  { id: "4", project: "Website Redesign", task: "Blog page design", date: "Dec 7, 2025", hours: 5.5, billable: true, status: "approved" },
-  { id: "5", project: "Mobile App", task: "User authentication", date: "Dec 6, 2025", hours: 7, billable: true, status: "rejected" },
-  { id: "6", project: "Security Audit", task: "Code review", date: "Dec 6, 2025", hours: 6, billable: true, status: "pending" },
-  { id: "7", project: "API Development", task: "Documentation", date: "Dec 5, 2025", hours: 3, billable: false, status: "approved" },
-]
 
 const statusColors = {
   approved: "default",
@@ -33,8 +25,34 @@ export function TimesheetsPage() {
   const [project, setProject] = useState<string>()
   const [hours, setHours] = useState("")
   const [description, setDescription] = useState("")
+  const [timesheets, setTimesheets] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    fetchTimesheets()
+  }, [])
+
+  const fetchTimesheets = async () => {
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const response = await timesheetsApi.getAll()
+      
+      if (response.error) {
+        throw new Error(response.error)
+      }
+      
+      setTimesheets(response.data?.data || [])
+    } catch (err: any) {
+      setError(err.message || 'Failed to load timesheets')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     // TODO: Implement timesheet submission
     console.log({ date, project, hours, description })
@@ -42,6 +60,27 @@ export function TimesheetsPage() {
 
   const totalHours = timesheets.reduce((sum, ts) => sum + ts.hours, 0)
   const billableHours = timesheets.filter(ts => ts.billable).reduce((sum, ts) => sum + ts.hours, 0)
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="text-center py-12">
+          <p className="text-red-500">{error}</p>
+          <button onClick={fetchTimesheets} className="mt-4 text-primary">Retry</button>
+        </div>
+      </DashboardLayout>
+    )
+  }
 
   return (
     <DashboardLayout>

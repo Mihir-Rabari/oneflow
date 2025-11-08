@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,16 +8,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, Mail, MoreVertical } from "lucide-react"
+import { Plus, Search, Mail, MoreVertical, Loader2 } from "lucide-react"
+import { usersApi } from "@/lib/api"
 
-const teamMembers = [
-  { id: "1", name: "John Doe", email: "john@example.com", role: "Admin", status: "Active", projects: 5, hours: 160 },
-  { id: "2", name: "Sarah Smith", email: "sarah@example.com", role: "Project Manager", status: "Active", projects: 8, hours: 155 },
-  { id: "3", name: "Mike Johnson", email: "mike@example.com", role: "Developer", status: "Active", projects: 4, hours: 168 },
-  { id: "4", name: "Emma Wilson", email: "emma@example.com", role: "Designer", status: "Active", projects: 6, hours: 140 },
-  { id: "5", name: "Alex Brown", email: "alex@example.com", role: "Developer", status: "Active", projects: 3, hours: 150 },
-  { id: "6", name: "Lisa Garcia", email: "lisa@example.com", role: "Team Member", status: "Inactive", projects: 2, hours: 0 },
-]
 
 const roleColors = {
   Admin: "default",
@@ -32,16 +25,63 @@ export function TeamPage() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [role, setRole] = useState<string>()
+  const [teamMembers, setTeamMembers] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetchTeamMembers()
+  }, [])
+
+  const fetchTeamMembers = async () => {
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const response = await usersApi.getAll()
+      
+      if (response.error) {
+        throw new Error(response.error)
+      }
+      
+      setTeamMembers(response.data?.data || [])
+    } catch (err: any) {
+      setError(err.message || 'Failed to load team members')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filteredMembers = teamMembers.filter((member) =>
-    member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    member.email.toLowerCase().includes(searchQuery.toLowerCase())
+    member.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    member.email?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const handleInvite = (e: React.FormEvent) => {
     e.preventDefault()
     // TODO: Implement team member invitation
     console.log({ name, email, role })
+  }
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="text-center py-12">
+          <p className="text-red-500">{error}</p>
+          <button onClick={fetchTeamMembers} className="mt-4 text-primary">Retry</button>
+        </div>
+      </DashboardLayout>
+    )
   }
 
   return (

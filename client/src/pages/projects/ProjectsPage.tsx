@@ -1,92 +1,77 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, Calendar, Users, DollarSign } from "lucide-react"
-
-const projects = [
-  {
-    id: "1",
-    name: "Website Redesign",
-    description: "Complete overhaul of company website",
-    status: "active",
-    progress: 65,
-    budget: "₹2,50,000",
-    team: 5,
-    deadline: "Dec 15, 2025",
-  },
-  {
-    id: "2",
-    name: "Mobile App Development",
-    description: "iOS and Android app for customer portal",
-    status: "active",
-    progress: 40,
-    budget: "₹5,00,000",
-    team: 8,
-    deadline: "Jan 30, 2026",
-  },
-  {
-    id: "3",
-    name: "CRM Integration",
-    description: "Integrate Salesforce with existing systems",
-    status: "planning",
-    progress: 10,
-    budget: "₹1,50,000",
-    team: 3,
-    deadline: "Feb 20, 2026",
-  },
-  {
-    id: "4",
-    name: "Data Migration",
-    description: "Migrate legacy data to new database",
-    status: "completed",
-    progress: 100,
-    budget: "₹75,000",
-    team: 4,
-    deadline: "Nov 30, 2025",
-  },
-  {
-    id: "5",
-    name: "Security Audit",
-    description: "Complete security review and penetration testing",
-    status: "active",
-    progress: 80,
-    budget: "₹1,00,000",
-    team: 2,
-    deadline: "Dec 10, 2025",
-  },
-  {
-    id: "6",
-    name: "API Development",
-    description: "RESTful API for third-party integrations",
-    status: "on-hold",
-    progress: 25,
-    budget: "₹2,00,000",
-    team: 4,
-    deadline: "Mar 15, 2026",
-  },
-]
+import { Plus, Search, Calendar, Users, DollarSign, Loader2 } from "lucide-react"
+import { projectsApi } from "@/lib/api"
 
 const statusColors = {
-  active: "default",
-  planning: "secondary",
-  completed: "default",
-  "on-hold": "destructive",
+  ACTIVE: "default",
+  PLANNING: "secondary",
+  COMPLETED: "default",
+  ON_HOLD: "destructive",
 } as const
 
 export function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [projects, setProjects] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetchProjects()
+  }, [])
+
+  const fetchProjects = async () => {
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const response = await projectsApi.getAll()
+      
+      if (response.error) {
+        throw new Error(response.error)
+      }
+      
+      setProjects(response.data?.data || [])
+    } catch (err: any) {
+      setError(err.message || 'Failed to load projects')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filteredProjects = projects.filter((project) => {
     const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          project.description.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesStatus = statusFilter === "all" || project.status === statusFilter
+    const matchesStatus = statusFilter === "all" || project.status === statusFilter.toUpperCase()
     return matchesSearch && matchesStatus
   })
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="text-center py-12">
+          <p className="text-red-500">{error}</p>
+          <button onClick={fetchProjects} className="mt-4 text-primary">Retry</button>
+        </div>
+      </DashboardLayout>
+    )
+  }
 
   return (
     <DashboardLayout>
@@ -119,10 +104,10 @@ export function ProjectsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Projects</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="planning">Planning</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="on-hold">On Hold</SelectItem>
+              <SelectItem value="ACTIVE">Active</SelectItem>
+              <SelectItem value="PLANNING">Planning</SelectItem>
+              <SelectItem value="COMPLETED">Completed</SelectItem>
+              <SelectItem value="ON_HOLD">On Hold</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -139,8 +124,8 @@ export function ProjectsPage() {
                       {project.description}
                     </CardDescription>
                   </div>
-                  <Badge variant={statusColors[project.status as keyof typeof statusColors]}>
-                    {project.status}
+                  <Badge variant={statusColors[project.status as keyof typeof statusColors] || "secondary"}>
+                    {project.status?.toLowerCase()}
                   </Badge>
                 </div>
               </CardHeader>
@@ -149,12 +134,12 @@ export function ProjectsPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Progress</span>
-                    <span className="font-medium">{project.progress}%</span>
+                    <span className="font-medium">{project.progress || 0}%</span>
                   </div>
                   <div className="h-2 rounded-full bg-muted overflow-hidden">
                     <div
                       className="h-full bg-primary transition-all"
-                      style={{ width: `${project.progress}%` }}
+                      style={{ width: `${project.progress || 0}%` }}
                     />
                   </div>
                 </div>
@@ -163,15 +148,15 @@ export function ProjectsPage() {
                 <div className="grid grid-cols-3 gap-2 text-sm">
                   <div className="flex items-center gap-1 text-muted-foreground">
                     <DollarSign className="h-4 w-4" />
-                    <span className="truncate">{project.budget}</span>
+                    <span className="truncate">₹{(project.budget / 1000).toFixed(0)}K</span>
                   </div>
                   <div className="flex items-center gap-1 text-muted-foreground">
                     <Users className="h-4 w-4" />
-                    <span>{project.team}</span>
+                    <span>{project.teamSize || 0}</span>
                   </div>
                   <div className="flex items-center gap-1 text-muted-foreground">
                     <Calendar className="h-4 w-4" />
-                    <span className="truncate text-xs">{project.deadline}</span>
+                    <span className="truncate text-xs">{project.endDate ? new Date(project.endDate).toLocaleDateString() : 'N/A'}</span>
                   </div>
                 </div>
               </CardContent>
