@@ -32,8 +32,9 @@ export function DashboardPage() {
       if (projectsRes.error) throw new Error(projectsRes.error)
       if (dashboardRes.error) throw new Error(dashboardRes.error)
 
-      const projects = projectsRes.data?.data || []
-      const dashboardStats = dashboardRes.data?.data || {}
+      const projectsData = projectsRes.data?.data || projectsRes.data || []
+      const projects = Array.isArray(projectsData) ? projectsData : []
+      const dashboardStats = dashboardRes.data?.data || dashboardRes.data || {}
 
       setStats({
         activeProjects: projects.filter((p: any) => p.status === 'ACTIVE').length,

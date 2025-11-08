@@ -39,7 +39,8 @@ export function BillingPage() {
         throw new Error(response.error)
       }
       
-      setInvoices(response.data?.data || [])
+      const invoicesData = response.data?.data || response.data || []
+      setInvoices(Array.isArray(invoicesData) ? invoicesData : [])
     } catch (err: any) {
       setError(err.message || 'Failed to load invoices')
     } finally {

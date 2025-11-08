@@ -37,7 +37,9 @@ export function ProjectsPage() {
         throw new Error(response.error)
       }
       
-      setProjects(response.data?.data || [])
+      // Backend returns { success: true, data: [...projects] }
+      const projectsData = response.data?.data || response.data || []
+      setProjects(Array.isArray(projectsData) ? projectsData : [])
     } catch (err: any) {
       setError(err.message || 'Failed to load projects')
     } finally {

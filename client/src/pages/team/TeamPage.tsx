@@ -44,7 +44,8 @@ export function TeamPage() {
         throw new Error(response.error)
       }
       
-      setTeamMembers(response.data?.data || [])
+      const membersData = response.data?.data || response.data || []
+      setTeamMembers(Array.isArray(membersData) ? membersData : [])
     } catch (err: any) {
       setError(err.message || 'Failed to load team members')
     } finally {

@@ -44,7 +44,8 @@ export function TimesheetsPage() {
         throw new Error(response.error)
       }
       
-      setTimesheets(response.data?.data || [])
+      const timesheetsData = response.data?.data || response.data || []
+      setTimesheets(Array.isArray(timesheetsData) ? timesheetsData : [])
     } catch (err: any) {
       setError(err.message || 'Failed to load timesheets')
     } finally {
