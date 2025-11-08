@@ -2,43 +2,72 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
-import { TrendingUp, DollarSign, Clock, Users } from "lucide-react"
-import { useState } from "react"
-
-const revenueData = [
-  { month: "Jan", revenue: 245000, expenses: 120000 },
-  { month: "Feb", revenue: 290000, expenses: 135000 },
-  { month: "Mar", revenue: 320000, expenses: 145000 },
-  { month: "Apr", revenue: 285000, expenses: 140000 },
-  { month: "May", revenue: 360000, expenses: 155000 },
-  { month: "Jun", revenue: 395000, expenses: 165000 },
-]
-
-const projectsData = [
-  { name: "Active", value: 12, color: "#3ECF8E" },
-  { name: "Planning", value: 5, color: "#60A5FA" },
-  { name: "Completed", value: 24, color: "#A78BFA" },
-  { name: "On Hold", value: 3, color: "#F87171" },
-]
-
-const timeTrackingData = [
-  { project: "Website", hours: 120 },
-  { project: "Mobile App", hours: 180 },
-  { project: "CRM", hours: 95 },
-  { project: "Security", hours: 75 },
-  { project: "API Dev", hours: 140 },
-]
-
-const teamPerformanceData = [
-  { member: "John", completed: 45, inProgress: 12 },
-  { member: "Sarah", completed: 38, inProgress: 15 },
-  { member: "Mike", completed: 52, inProgress: 8 },
-  { member: "Emma", completed: 41, inProgress: 11 },
-  { member: "Alex", completed: 35, inProgress: 14 },
-]
+import { TrendingUp, DollarSign, Clock, Users, Loader2 } from "lucide-react"
+import { useState, useEffect } from "react"
+import { analyticsApi } from "@/lib/api"
 
 export function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState("6months")
+  const [loading, setLoading] = useState(true)
+  const [dashboardData, setDashboardData] = useState<any>(null)
+  const [financialData, setFinancialData] = useState<any>(null)
+  const [teamPerformanceData, setTeamPerformanceData] = useState<any>(null)
+
+  useEffect(() => {
+    fetchAnalytics()
+  }, [timeRange])
+
+  const fetchAnalytics = async () => {
+    setLoading(true)
+    try {
+      const [dashboard, financial, teamPerf] = await Promise.all([
+        analyticsApi.getDashboardStats(),
+        analyticsApi.getFinancialReport(),
+        analyticsApi.getTeamPerformance(),
+      ])
+
+      if (!dashboard.error) {
+        setDashboardData(dashboard.data?.data || dashboard.data)
+      }
+      if (!financial.error) {
+        setFinancialData(financial.data?.data || financial.data)
+      }
+      if (!teamPerf.error) {
+        setTeamPerformanceData(teamPerf.data?.data || teamPerf.data)
+      }
+    } catch (err) {
+      console.error('Failed to load analytics:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Use actual API data - no fallbacks
+  const revenueData = financialData?.monthlyRevenue || []
+  const projectsData = dashboardData?.projectsByStatus || []
+  const timeTrackingData = dashboardData?.timeByProject || []
+  const teamData = teamPerformanceData?.members || []
+
+  const stats = {
+    totalRevenue: dashboardData?.totalRevenue || '0',
+    revenueGrowth: dashboardData?.revenueGrowth || '0%',
+    profitMargin: dashboardData?.profitMargin || '0%',
+    profitGrowth: dashboardData?.profitGrowth || '0%',
+    billableHours: dashboardData?.billableHours || 0,
+    utilization: dashboardData?.utilization || '0%',
+    activeProjects: dashboardData?.activeProjects || 0,
+    totalProjects: dashboardData?.totalProjects || 0,
+  }
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
+    )
+  }
 
   return (
     <DashboardLayout>
@@ -71,8 +100,8 @@ export function AnalyticsPage() {
               <DollarSign className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹18.95L</div>
-              <p className="text-xs text-muted-foreground">+12% from last period</p>
+              <div className="text-2xl font-bold">₹{stats.totalRevenue}</div>
+              <p className="text-xs text-muted-foreground">{stats.revenueGrowth} from last period</p>
             </CardContent>
           </Card>
           <Card>
@@ -81,8 +110,8 @@ export function AnalyticsPage() {
               <TrendingUp className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">47.2%</div>
-              <p className="text-xs text-muted-foreground">+3.2% from last period</p>
+              <div className="text-2xl font-bold">{stats.profitMargin}</div>
+              <p className="text-xs text-muted-foreground">{stats.profitGrowth} from last period</p>
             </CardContent>
           </Card>
           <Card>
@@ -91,8 +120,8 @@ export function AnalyticsPage() {
               <Clock className="h-4 w-4 text-blue-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">610</div>
-              <p className="text-xs text-muted-foreground">84% utilization</p>
+              <div className="text-2xl font-bold">{stats.billableHours}</div>
+              <p className="text-xs text-muted-foreground">{stats.utilization} utilization</p>
             </CardContent>
           </Card>
           <Card>
@@ -101,8 +130,8 @@ export function AnalyticsPage() {
               <Users className="h-4 w-4 text-purple-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12</div>
-              <p className="text-xs text-muted-foreground">44 total projects</p>
+              <div className="text-2xl font-bold">{stats.activeProjects}</div>
+              <p className="text-xs text-muted-foreground">{stats.totalProjects} total projects</p>
             </CardContent>
           </Card>
         </div>
@@ -186,7 +215,7 @@ export function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={teamPerformanceData}>
+              <BarChart data={teamData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="member" />
                 <YAxis />

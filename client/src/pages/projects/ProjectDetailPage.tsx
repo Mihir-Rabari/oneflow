@@ -25,7 +25,16 @@ import {
 } from "lucide-react"
 import { projectsApi, tasksApi } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
-import { TaskPriority } from "@oneflow/shared"
+
+// Task Priority constants
+const TaskPriority = {
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH',
+  URGENT: 'URGENT',
+} as const
+
+type TaskPriorityType = typeof TaskPriority[keyof typeof TaskPriority]
 
 const statusColors = {
   ACTIVE: "default",
@@ -46,7 +55,7 @@ const priorityColors = {
 type TaskFormData = {
   title: string
   description: string
-  priority: TaskPriority
+  priority: TaskPriorityType
   assignedToId: string
   estimatedHours: string
 }
@@ -333,7 +342,7 @@ export function ProjectDetailPage() {
                           <Select
                             value={taskFormData.priority}
                             onValueChange={(value) =>
-                              setTaskFormData((prev) => ({ ...prev, priority: value as TaskPriority }))
+                              setTaskFormData((prev) => ({ ...prev, priority: value as TaskPriorityType }))
                             }
                           >
                             <SelectTrigger>

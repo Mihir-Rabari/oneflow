@@ -21,7 +21,24 @@ import {
 } from "lucide-react"
 import { tasksApi } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
-import { TaskStatus, TaskPriority } from "@oneflow/shared"
+
+// Task Status and Priority constants
+const TaskStatus = {
+  NEW: 'NEW',
+  IN_PROGRESS: 'IN_PROGRESS',
+  BLOCKED: 'BLOCKED',
+  DONE: 'DONE',
+} as const
+
+const TaskPriority = {
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH',
+  URGENT: 'URGENT',
+} as const
+
+type TaskStatusType = typeof TaskStatus[keyof typeof TaskStatus]
+type TaskPriorityType = typeof TaskPriority[keyof typeof TaskPriority]
 
 const statusColors = {
   NEW: "secondary",
@@ -74,7 +91,7 @@ export function TaskDetailPage() {
     }
   }
 
-  const handleUpdateStatus = async (newStatus: TaskStatus) => {
+  const handleUpdateStatus = async (newStatus: TaskStatusType) => {
     setUpdateLoading(true)
     try {
       const response = await tasksApi.update(taskId!, { status: newStatus })
@@ -155,7 +172,7 @@ export function TaskDetailPage() {
           <div className="flex items-center gap-2">
             <Select
               value={task.status}
-              onValueChange={(value) => handleUpdateStatus(value as TaskStatus)}
+              onValueChange={(value) => handleUpdateStatus(value as TaskStatusType)}
               disabled={updateLoading}
             >
               <SelectTrigger className="w-[180px]">

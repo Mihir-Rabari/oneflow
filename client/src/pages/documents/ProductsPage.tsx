@@ -135,32 +135,38 @@ export function ProductsPage() {
                     <Label>Product Type</Label>
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center space-x-2">
-                        <Checkbox
+                        <input
+                          type="checkbox"
                           id="sales"
                           checked={formData.forSales}
-                          onCheckedChange={(checked) =>
-                            setFormData((prev) => ({ ...prev, forSales: checked as boolean }))
+                          onChange={(e) =>
+                            setFormData((prev) => ({ ...prev, forSales: e.target.checked }))
                           }
+                          className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
                         />
                         <Label htmlFor="sales" className="font-normal">Sales</Label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Checkbox
+                        <input
+                          type="checkbox"
                           id="purchase"
                           checked={formData.forPurchase}
-                          onCheckedChange={(checked) =>
-                            setFormData((prev) => ({ ...prev, forPurchase: checked as boolean }))
+                          onChange={(e) =>
+                            setFormData((prev) => ({ ...prev, forPurchase: e.target.checked }))
                           }
+                          className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
                         />
                         <Label htmlFor="purchase" className="font-normal">Purchase</Label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Checkbox
+                        <input
+                          type="checkbox"
                           id="expenses"
                           checked={formData.forExpenses}
-                          onCheckedChange={(checked) =>
-                            setFormData((prev) => ({ ...prev, forExpenses: checked as boolean }))
+                          onChange={(e) =>
+                            setFormData((prev) => ({ ...prev, forExpenses: e.target.checked }))
                           }
+                          className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
                         />
                         <Label htmlFor="expenses" className="font-normal">Expenses</Label>
                       </div>
