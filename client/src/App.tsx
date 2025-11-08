@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthContext'
+import { ProtectedRoute } from './components/ProtectedRoute'
 import { LandingPage } from './pages/LandingPage'
 import { LoginPage } from './pages/auth/LoginPage'
 import { RegisterPage } from './pages/auth/RegisterPage'
@@ -15,20 +17,25 @@ import { ComponentsDemo } from './pages/ComponentsDemo'
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/verify-otp" element={<OTPPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/projects" element={<ProjectsPage />} />
-        <Route path="/timesheets" element={<TimesheetsPage />} />
-        <Route path="/billing" element={<BillingPage />} />
-        <Route path="/analytics" element={<AnalyticsPage />} />
-        <Route path="/team" element={<TeamPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/components" element={<ComponentsDemo />} />
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/verify-otp" element={<OTPPage />} />
+          
+          {/* Protected routes */}
+          <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+          <Route path="/projects" element={<ProtectedRoute><ProjectsPage /></ProtectedRoute>} />
+          <Route path="/timesheets" element={<ProtectedRoute><TimesheetsPage /></ProtectedRoute>} />
+          <Route path="/billing" element={<ProtectedRoute><BillingPage /></ProtectedRoute>} />
+          <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
+          <Route path="/team" element={<ProtectedRoute><TeamPage /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+          <Route path="/components" element={<ComponentsDemo />} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   )
 }
