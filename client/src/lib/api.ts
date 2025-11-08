@@ -359,6 +359,12 @@ export const usersApi = {
 
   getProfile: () => apiRequest('/users/profile', { method: 'GET' }),
 
+  create: (data: any) =>
+    apiRequest('/users', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
   updateProfile: (data: any) =>
     apiRequest('/users/profile', {
       method: 'PUT',

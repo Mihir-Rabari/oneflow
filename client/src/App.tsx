@@ -21,6 +21,7 @@ import { InvoicesPage } from './pages/documents/InvoicesPage'
 import { VendorBillsPage } from './pages/documents/VendorBillsPage'
 import { ExpensesPage } from './pages/documents/ExpensesPage'
 import { ProductsPage } from './pages/documents/ProductsPage'
+import { UsersPage } from './pages/users/UsersPage'
 
 function App() {
   return (
@@ -42,6 +43,7 @@ function App() {
           <Route path="/billing" element={<ProtectedRoute><BillingPage /></ProtectedRoute>} />
           <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
           <Route path="/team" element={<ProtectedRoute><TeamPage /></ProtectedRoute>} />
+          <Route path="/users" element={<ProtectedRoute><UsersPage /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
           
           {/* Document routes */}

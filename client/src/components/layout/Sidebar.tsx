@@ -26,6 +26,7 @@ const menuItems = [
   { icon: FileText, label: "Billing", href: "/billing", roles: ["ADMIN", "PROJECT_MANAGER"] },
   { icon: BarChart3, label: "Analytics", href: "/analytics", roles: ["ADMIN", "PROJECT_MANAGER"] },
   { icon: Users, label: "Team", href: "/team", roles: ["ADMIN", "PROJECT_MANAGER"] },
+  { icon: Users, label: "User Management", href: "/users", roles: ["ADMIN"] }, // Admin only
 ]
 
 const documentMenuItems = [
