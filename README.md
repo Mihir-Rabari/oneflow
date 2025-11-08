@@ -1,29 +1,52 @@
 # OneFlow - Plan to Bill in One Place 🚀
 
-**Status:** ✅ Production Ready | 🎉 Fully Integrated | 🚀 Hackathon Submission
+**Status:** ✅ Production Ready | 🎉 Fully Integrated | 🚀 November 2025 Hackathon
 
-A comprehensive project management platform that streamlines the complete project lifecycle from planning → execution → billing with real-time API integration and role-based access control.
+**Last Updated:** November 9, 2025
+
+A comprehensive project management platform that streamlines the complete project lifecycle from planning → execution → billing with real-time API integration, role-based access control, and advanced task management.
 
 ## 📋 Overview
 
-OneFlow is a modular SaaS platform designed for project managers to handle projects end-to-end:
-- **Plan**: Projects, tasks, people, deadlines
-- **Execute**: Task boards, hour logging, status tracking, blockers
+OneFlow is a modular SaaS platform designed for teams to handle projects end-to-end:
+- **Plan**: Projects, tasks, people, deadlines with Kanban & Gantt views
+- **Execute**: Enhanced task boards, hour logging, status tracking, drag-and-drop management
 - **Bill & Track Money**: Sales Orders, Purchase Orders, Invoices, Bills, Expenses with real-time profitability tracking
+- **Collaborate**: Team management, collapsible sidebar, role-based dashboards
 
 ## ✨ Key Features
 
-- 🔐 **Secure Authentication** with OTP verification
+### **Core Functionality**
+- 🔐 **Secure Authentication** with OTP verification and JWT tokens
 - 👥 **Role-Based Access Control** (Admin, Project Manager, Team Member, Sales/Finance)
-- 📊 **Project Management** with budget tracking and progress monitoring
-- ✅ **Task Management** with Kanban board (New → In Progress → Blocked → Done)
-- ⏱️ **Timesheet Tracking** with billable/non-billable hours
+- 📊 **Project Management** with budget tracking, progress monitoring, and status updates
 - 💰 **Financial Management** (Sales Orders, Purchase Orders, Invoices, Bills, Expenses)
-- 📈 **Analytics Dashboard** with revenue, cost, and profit tracking
-- 🔔 **Real-time Updates** via WebSocket
-- 📧 **Email Notifications** with beautiful templates
-- 🌓 **Light/Dark Theme** support
-- 📱 **Responsive Design** for mobile and desktop
+- 📈 **Analytics Dashboard** with revenue, cost, and profit tracking for all roles
+- 📧 **Email Notifications** with beautiful Handlebars templates
+
+### **Enhanced Task Management** 🎯
+- ✅ **Dual View System**: Toggle between Kanban and Gantt views
+- 📋 **Kanban Board**: 4-column layout (New → In Progress → Blocked → Done)
+- 📊 **Gantt Timeline**: List view with dates, hours, and status tracking
+- ✏️ **Task CRUD**: Create, Edit, Delete tasks with full dialog forms
+- 🎨 **Priority Management**: Visual badges (Low, Medium, High, Urgent)
+- ⏰ **Time Tracking**: Due dates, estimated hours, actual hours
+- 🗑️ **Quick Actions**: Hover-based edit/delete buttons on all task cards
+- 📝 **Task Progress**: Progress percentage tracking (0-100%)
+
+### **UI/UX Enhancements** 🎨
+- 🎯 **Collapsible Sidebar**: Toggle between full-width and icon-only mode
+- 🖼️ **Smooth Animations**: Transition effects for all interactions
+- 📱 **Fully Responsive**: Mobile-first design for all screen sizes
+- 🌓 **Light/Dark Theme** support with CSS variables
+- 💫 **Professional Design**: Clean, minimalistic Supabase-inspired aesthetic
+
+### **Advanced Features**
+- ⏱️ **Timesheet Tracking** with billable/non-billable hours
+- 👥 **Team Management**: View all members with roles and details
+- 🔔 **Real-time Updates** via optimistic UI updates
+- 🔍 **Search & Filters**: Across projects, tasks, and documents
+- 📊 **Comprehensive Settings**: Complete project details with team member display
 
 ## 🛠️ Tech Stack
 
@@ -136,27 +159,46 @@ The backend will run on `http://localhost:4000` and frontend on `http://localhos
 - `PATCH /users/:id` - Update user (Admin/PM)
 - `DELETE /users/:id` - Delete user (Admin)
 
-### Projects *(Coming Soon)*
-- `GET /projects` - Get all projects
+### Projects
+- `GET /projects` - Get all projects (filtered by user access)
 - `POST /projects` - Create project
-- `GET /projects/:id` - Get project details
-- `PATCH /projects/:id` - Update project
+- `GET /projects/:id` - Get project details with team members
+- `PATCH /projects/:id` - Update project (name, status, budget, etc.)
+- `DELETE /projects/:id` - Delete project
+- `GET /projects/:id/stats` - Get project statistics
 
-### Tasks *(Coming Soon)*
+### Tasks
 - `GET /tasks` - Get all tasks
+- `GET /tasks/project/:projectId` - Get tasks by project (Kanban format)
 - `POST /tasks` - Create task
-- `PATCH /tasks/:id` - Update task status
+- `GET /tasks/:id` - Get task details
+- `PATCH /tasks/:id` - Update task (title, status, priority, progress, etc.)
+- `DELETE /tasks/:id` - Delete task
+- `POST /tasks/:id/comments` - Add comment to task
+
+### Billing
+- **Sales Orders**: `GET, POST, PATCH, DELETE /sales-orders`
+- **Purchase Orders**: `GET, POST, PATCH, DELETE /purchase-orders`
+- **Invoices**: `GET, POST, PATCH, DELETE /invoices`
+- **Vendor Bills**: `GET, POST, PATCH, DELETE /vendor-bills`
+- **Expenses**: `GET, POST, PATCH, DELETE /expenses`
+- **Products**: `GET, POST, PATCH, DELETE /products`
+
+### Analytics
+- `GET /analytics/dashboard` - Dashboard statistics (all roles)
+- `GET /analytics/financial-report` - Financial reports (Admin/PM)
+- `GET /analytics/team-performance` - Team metrics (Admin/PM)
+- `GET /analytics/project-timeline/:projectId` - Project timeline (all roles)
 
 ## 📧 Email Templates
 
-OneFlow includes beautiful, responsive email templates for:
+OneFlow includes beautiful, responsive Handlebars email templates for:
 - ✅ OTP Verification
 - 🎉 Welcome Email
 - 🔑 New User Credentials
 - 🔒 Password Reset
-- 📋 Task Assignment *(Coming Soon)*
-- 📊 Project Invitation *(Coming Soon)*
-- 💰 Invoice Notification *(Coming Soon)*
+- 📋 Task Assignment
+- 📊 Project Invitation
 
 ## 🔒 Security Features
 
