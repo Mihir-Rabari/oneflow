@@ -47,14 +47,21 @@ export function DashboardPage() {
       }
 
       // Parse dashboard stats: { success: true, data: { overview: {...}, financials: {...}, recentProjects: [...] } }
-      const dashboardStats = dashboardRes.data || {}
+      const dashboardStats = dashboardRes.data?.data || dashboardRes.data || {}
       const overview = dashboardStats.overview || {}
       const financials = dashboardStats.financials || {}
       const recentProjectsData = dashboardStats.recentProjects || []
 
       console.log('Dashboard - Parsed projects:', projects)
+      console.log('Dashboard - dashboardStats:', dashboardStats)
       console.log('Dashboard - Overview stats:', overview)
       console.log('Dashboard - Financials:', financials)
+      console.log('Dashboard - Setting stats:', {
+        activeProjects: overview.activeProjects,
+        hoursLogged: financials.totalHoursLogged,
+        revenue: financials.totalRevenue,
+        profit: financials.profit
+      })
 
       setStats({
         activeProjects: overview.activeProjects || 0,
