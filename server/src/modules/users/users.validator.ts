@@ -1,10 +1,24 @@
 import { z } from 'zod';
 import { UserRole, UserStatus } from '@oneflow/shared';
 
+// Strict email regex pattern
+const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+// Name sanitization - only letters, spaces, hyphens, apostrophes
+const nameRegex = /^[a-zA-Z\s'-]+$/;
+
 export const createUserSchema = z.object({
   body: z.object({
-    email: z.string().email('Invalid email address'),
-    name: z.string().min(2, 'Name must be at least 2 characters'),
+    email: z.string()
+      .min(1, 'Email is required')
+      .email('Invalid email format')
+      .regex(emailRegex, 'Email must be a valid format')
+      .transform(val => val.toLowerCase().trim()),
+    name: z.string()
+      .min(2, 'Name must be at least 2 characters')
+      .max(100, 'Name must not exceed 100 characters')
+      .regex(nameRegex, 'Name can only contain letters, spaces, hyphens, and apostrophes')
+      .transform(val => val.trim()),
     role: z.nativeEnum(UserRole),
     phone: z.string().optional(),
     hourlyRate: z.number().positive('Hourly rate must be positive').optional(),
@@ -17,7 +31,12 @@ export const updateUserSchema = z.object({
     userId: z.string().uuid('Invalid user ID'),
   }),
   body: z.object({
-    name: z.string().min(2, 'Name must be at least 2 characters').optional(),
+    name: z.string()
+      .min(2, 'Name must be at least 2 characters')
+      .max(100, 'Name must not exceed 100 characters')
+      .regex(nameRegex, 'Name can only contain letters, spaces, hyphens, and apostrophes')
+      .transform(val => val.trim())
+      .optional(),
     phone: z.string().optional(),
     hourlyRate: z.number().positive('Hourly rate must be positive').optional(),
     department: z.string().optional(),
@@ -28,7 +47,12 @@ export const updateUserSchema = z.object({
 
 export const updateProfileSchema = z.object({
   body: z.object({
-    name: z.string().min(2, 'Name must be at least 2 characters').optional(),
+    name: z.string()
+      .min(2, 'Name must be at least 2 characters')
+      .max(100, 'Name must not exceed 100 characters')
+      .regex(nameRegex, 'Name can only contain letters, spaces, hyphens, and apostrophes')
+      .transform(val => val.trim())
+      .optional(),
     phone: z.string().optional(),
     avatar: z.string().url('Invalid avatar URL').optional(),
   }),

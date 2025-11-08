@@ -1,9 +1,23 @@
 import { z } from 'zod';
 
+// Strict email regex pattern
+const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+// Name sanitization - only letters, spaces, hyphens, apostrophes
+const nameRegex = /^[a-zA-Z\s'-]+$/;
+
 export const registerSchema = z.object({
   body: z.object({
-    email: z.string().email('Invalid email address'),
-    name: z.string().min(2, 'Name must be at least 2 characters'),
+    email: z.string()
+      .min(1, 'Email is required')
+      .email('Invalid email format')
+      .regex(emailRegex, 'Email must be a valid format')
+      .transform(val => val.toLowerCase().trim()),
+    name: z.string()
+      .min(2, 'Name must be at least 2 characters')
+      .max(100, 'Name must not exceed 100 characters')
+      .regex(nameRegex, 'Name can only contain letters, spaces, hyphens, and apostrophes')
+      .transform(val => val.trim()),
     password: z
       .string()
       .min(8, 'Password must be at least 8 characters')
@@ -16,21 +30,37 @@ export const registerSchema = z.object({
 
 export const verifyOTPSchema = z.object({
   body: z.object({
-    email: z.string().email('Invalid email address'),
-    otp: z.string().length(6, 'OTP must be 6 digits'),
+    email: z.string()
+      .min(1, 'Email is required')
+      .email('Invalid email format')
+      .regex(emailRegex, 'Email must be a valid format')
+      .transform(val => val.toLowerCase().trim()),
+    otp: z.string()
+      .length(6, 'OTP must be 6 digits')
+      .regex(/^\d{6}$/, 'OTP must contain only digits'),
   }),
 });
 
 export const resendOTPSchema = z.object({
   body: z.object({
-    email: z.string().email('Invalid email address'),
+    email: z.string()
+      .min(1, 'Email is required')
+      .email('Invalid email format')
+      .regex(emailRegex, 'Email must be a valid format')
+      .transform(val => val.toLowerCase().trim()),
   }),
 });
 
 export const loginSchema = z.object({
   body: z.object({
-    email: z.string().email('Invalid email address'),
-    password: z.string().min(1, 'Password is required'),
+    email: z.string()
+      .min(1, 'Email is required')
+      .email('Invalid email format')
+      .regex(emailRegex, 'Email must be a valid format')
+      .transform(val => val.toLowerCase().trim()),
+    password: z.string()
+      .min(1, 'Password is required')
+      .min(6, 'Password must be at least 6 characters'),
   }),
 });
 
@@ -42,14 +72,24 @@ export const refreshTokenSchema = z.object({
 
 export const forgotPasswordSchema = z.object({
   body: z.object({
-    email: z.string().email('Invalid email address'),
+    email: z.string()
+      .min(1, 'Email is required')
+      .email('Invalid email format')
+      .regex(emailRegex, 'Email must be a valid format')
+      .transform(val => val.toLowerCase().trim()),
   }),
 });
 
 export const resetPasswordSchema = z.object({
   body: z.object({
-    email: z.string().email('Invalid email address'),
-    otp: z.string().length(6, 'OTP must be 6 digits'),
+    email: z.string()
+      .min(1, 'Email is required')
+      .email('Invalid email format')
+      .regex(emailRegex, 'Email must be a valid format')
+      .transform(val => val.toLowerCase().trim()),
+    otp: z.string()
+      .length(6, 'OTP must be 6 digits')
+      .regex(/^\d{6}$/, 'OTP must contain only digits'),
     newPassword: z
       .string()
       .min(8, 'Password must be at least 8 characters')
