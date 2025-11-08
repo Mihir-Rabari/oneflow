@@ -102,16 +102,31 @@ export function ProjectsPage() {
       if (response.error) {
         throw new Error(response.error)
       }
-      const users = response.data?.data || response.data || []
+      
+      // Backend returns: { success: true, data: { users: [...], pagination: {...} } }
+      let users = []
+      if (response.data?.data?.users) {
+        users = response.data.data.users
+      } else if (response.data?.users) {
+        users = response.data.users
+      } else if (Array.isArray(response.data)) {
+        users = response.data
+      }
+      
+      console.log('Loaded users for managers:', users)
       const managers = Array.isArray(users)
         ? users.filter((member: any) => ["ADMIN", "PROJECT_MANAGER"].includes(member.role))
         : []
+      
+      console.log('Filtered managers:', managers)
       setProjectManagers(managers)
+      
       if (managers.length > 0) {
         const defaultManager = managers.find((manager: any) => manager.id === user?.id) || managers[0]
         setFormData((prev) => ({ ...prev, projectManagerId: defaultManager?.id || "" }))
       }
     } catch (err: any) {
+      console.error('Failed to load managers:', err)
       setFormError(err.message || 'Failed to load project managers')
     } finally {
       setManagersLoading(false)
@@ -147,35 +162,136 @@ export function ProjectsPage() {
     setFormError(null)
     setSuccessMessage(null)
 
-    if (!formData.name.trim()) {
+    // Name validation
+    const projectName = formData.name.trim()
+    if (!projectName) {
       setFormError('Project name is required')
       return
     }
+    if (projectName.length < 3) {
+      setFormError('Project name must be at least 3 characters')
+      return
+    }
+    if (projectName.length > 100) {
+      setFormError('Project name must not exceed 100 characters')
+      return
+    }
+    // Allow only letters, numbers, spaces, hyphens, and underscores
+    if (!/^[a-zA-Z0-9\s\-_]+$/.test(projectName)) {
+      setFormError('Project name can only contain letters, numbers, spaces, hyphens, and underscores')
+      return
+    }
 
+    // Start date validation
     if (!startDate) {
       setFormError('Start date is required')
       return
     }
+    
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const start = new Date(startDate)
+    start.setHours(0, 0, 0, 0)
+    
+    if (start < today) {
+      setFormError('Start date cannot be in the past')
+      return
+    }
 
+    // End date validation
+    if (endDate) {
+      const end = new Date(endDate)
+      end.setHours(0, 0, 0, 0)
+      
+      if (end <= start) {
+        setFormError('End date must be after start date')
+        return
+      }
+    }
+
+    // Deadline validation
+    if (deadline) {
+      const deadlineDate = new Date(deadline)
+      deadlineDate.setHours(0, 0, 0, 0)
+      
+      if (deadlineDate <= start) {
+        setFormError('Deadline must be after start date')
+        return
+      }
+      
+      if (endDate) {
+        const end = new Date(endDate)
+        end.setHours(0, 0, 0, 0)
+        if (deadlineDate > end) {
+          setFormError('Deadline should be before or equal to end date')
+          return
+        }
+      }
+    }
+
+    // Project manager validation
     const managerId = formData.projectManagerId || (canCreateProject ? user?.id : null)
     if (!managerId) {
       setFormError('Project manager is required')
       return
     }
 
+    // Budget validation
+    if (formData.budget) {
+      const budgetNum = Number(formData.budget)
+      if (isNaN(budgetNum) || budgetNum <= 0) {
+        setFormError('Budget must be a positive number')
+        return
+      }
+      if (budgetNum > 999999999) {
+        setFormError('Budget is too large')
+        return
+      }
+    }
+
+    // Client name validation
+    const clientName = formData.clientName.trim()
+    if (clientName) {
+      if (clientName.length < 2) {
+        setFormError('Client name must be at least 2 characters')
+        return
+      }
+      if (!/^[a-zA-Z\s'-]+$/.test(clientName)) {
+        setFormError('Client name can only contain letters, spaces, hyphens, and apostrophes')
+        return
+      }
+    }
+
+    // Client email validation
+    const clientEmail = formData.clientEmail.trim()
+    if (clientEmail) {
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+      if (!emailRegex.test(clientEmail)) {
+        setFormError('Please enter a valid client email address')
+        return
+      }
+    }
+
     const payload: Record<string, any> = {
-      name: formData.name.trim(),
+      name: projectName,
       type: formData.type,
       startDate: startDate.toISOString(),
       projectManagerId: managerId,
     }
 
-    if (formData.description.trim()) payload.description = formData.description.trim()
+    if (formData.description.trim()) {
+      const desc = formData.description.trim()
+      if (desc.length > 1000) {
+        setFormError('Description must not exceed 1000 characters')
+        return
+      }
+      payload.description = desc
+    }
     if (formData.budget) payload.budget = Number(formData.budget)
     if (endDate) payload.endDate = endDate.toISOString()
     if (deadline) payload.deadline = deadline.toISOString()
-    if (formData.clientName.trim()) payload.clientName = formData.clientName.trim()
-    if (formData.clientEmail.trim()) payload.clientEmail = formData.clientEmail.trim()
+    if (clientName) payload.clientName = clientName
+    if (clientEmail) payload.clientEmail = clientEmail
 
     setCreateLoading(true)
     try {

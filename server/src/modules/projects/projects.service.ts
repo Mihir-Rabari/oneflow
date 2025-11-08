@@ -205,6 +205,24 @@ export class ProjectsService {
       },
     });
 
+    // Send email to project manager
+    try {
+      await emailService.sendProjectAssignment(
+        pm.email,
+        pm.name,
+        project.name,
+        data.startDate,
+        data.endDate,
+        data.deadline,
+        data.budget,
+        data.clientName
+      );
+      logger.info(`Project assignment email sent to ${pm.email}`);
+    } catch (emailError: any) {
+      logger.error(`Failed to send project assignment email: ${emailError.message}`);
+      // Don't fail the project creation if email fails
+    }
+
     // Add team members
     if (data.teamMemberIds && data.teamMemberIds.length > 0) {
       await prisma.projectMember.createMany({
@@ -221,12 +239,18 @@ export class ProjectsService {
       });
 
       for (const member of members) {
-        await emailService.sendProjectInvitation(
-          member.email,
-          member.name,
-          project.name,
-          pm.name
-        );
+        try {
+          await emailService.sendProjectInvitation(
+            member.email,
+            member.name,
+            project.name,
+            pm.name
+          );
+          logger.info(`Project invitation sent to ${member.email}`);
+        } catch (emailError: any) {
+          logger.error(`Failed to send invitation to ${member.email}: ${emailError.message}`);
+          // Continue with other emails even if one fails
+        }
       }
     }
 

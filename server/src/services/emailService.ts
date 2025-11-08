@@ -94,6 +94,86 @@ class EmailService {
     await this.sendEmail(to, 'Your OneFlow Account Credentials', html);
   }
 
+  async sendProjectAssignment(
+    to: string,
+    name: string,
+    projectName: string,
+    startDate: Date,
+    endDate?: Date,
+    deadline?: Date,
+    budget?: number,
+    clientName?: string
+  ): Promise<void> {
+    const formatDate = (date: Date) => new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #4F46E5; color: white; padding: 20px; text-align: center; }
+          .content { background-color: #f9f9f9; padding: 20px; }
+          .details { background-color: white; padding: 15px; margin: 10px 0; border-radius: 5px; }
+          .detail-row { margin: 10px 0; }
+          .label { font-weight: bold; color: #4F46E5; }
+          .button { background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0; }
+          .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🎯 New Project Assignment</h1>
+          </div>
+          <div class="content">
+            <h2>Hello ${name},</h2>
+            <p>You have been assigned as the <strong>Project Manager</strong> for a new project.</p>
+            
+            <div class="details">
+              <h3>Project Details:</h3>
+              <div class="detail-row"><span class="label">Project Name:</span> ${projectName}</div>
+              <div class="detail-row"><span class="label">Start Date:</span> ${formatDate(startDate)}</div>
+              ${endDate ? `<div class="detail-row"><span class="label">End Date:</span> ${formatDate(endDate)}</div>` : ''}
+              ${deadline ? `<div class="detail-row"><span class="label">Deadline:</span> ${formatDate(deadline)}</div>` : ''}
+              ${budget ? `<div class="detail-row"><span class="label">Budget:</span> $${budget.toLocaleString()}</div>` : ''}
+              ${clientName ? `<div class="detail-row"><span class="label">Client:</span> ${clientName}</div>` : ''}
+              <div class="detail-row"><span class="label">Your Email:</span> ${to}</div>
+            </div>
+            
+            <p><strong>Your Responsibilities:</strong></p>
+            <ul>
+              <li>Lead and coordinate the project team</li>
+              <li>Ensure project milestones are met on time</li>
+              <li>Manage project budget and resources</li>
+              <li>Communicate progress to stakeholders</li>
+              <li>Resolve any project-related issues</li>
+            </ul>
+            
+            <center>
+              <a href="${env.FRONTEND_URL}/projects" class="button">View Project Dashboard</a>
+            </center>
+            
+            <p>If you have any questions or concerns, please contact your administrator.</p>
+            
+            <p>Best regards,<br>The OneFlow Team</p>
+          </div>
+          <div class="footer">
+            <p>This is an automated email from OneFlow. Please do not reply to this message.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    await this.sendEmail(to, `You've been assigned to manage: ${projectName}`, html);
+  }
+
   async sendProjectInvitation(
     to: string,
     name: string,
