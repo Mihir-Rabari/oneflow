@@ -17,14 +17,15 @@ import {
   DollarSign
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useAuth } from "@/contexts/AuthContext"
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: FolderKanban, label: "Projects", href: "/projects" },
-  { icon: Clock, label: "Timesheets", href: "/timesheets" },
-  { icon: FileText, label: "Billing", href: "/billing" },
-  { icon: BarChart3, label: "Analytics", href: "/analytics" },
-  { icon: Users, label: "Team", href: "/team" },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", roles: [] }, // All roles
+  { icon: FolderKanban, label: "Projects", href: "/projects", roles: [] }, // All roles
+  { icon: Clock, label: "Timesheets", href: "/timesheets", roles: [] }, // All roles
+  { icon: FileText, label: "Billing", href: "/billing", roles: ["ADMIN", "PROJECT_MANAGER"] },
+  { icon: BarChart3, label: "Analytics", href: "/analytics", roles: ["ADMIN", "PROJECT_MANAGER"] },
+  { icon: Users, label: "Team", href: "/team", roles: ["ADMIN", "PROJECT_MANAGER"] },
 ]
 
 const documentMenuItems = [
@@ -43,6 +44,15 @@ interface SidebarProps {
 export function Sidebar({ className }: SidebarProps) {
   const currentPath = window.location.pathname
   const [isDocumentsOpen, setIsDocumentsOpen] = useState(false)
+  const { user } = useAuth()
+
+  // Filter menu items based on user role
+  const visibleMenuItems = menuItems.filter((item) => {
+    // If no roles specified (empty array), show to everyone
+    if (item.roles.length === 0) return true
+    // Otherwise, check if user's role is in the allowed roles
+    return user && item.roles.includes(user.role)
+  })
 
   return (
     <aside className={cn("flex flex-col h-screen bg-card border-r", className)}>
@@ -53,7 +63,7 @@ export function Sidebar({ className }: SidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {menuItems.map((item) => {
+        {visibleMenuItems.map((item) => {
           const isActive = currentPath === item.href
           return (
             <a
