@@ -6,15 +6,30 @@ import { logger } from '@/utils/logger';
 export class SalesOrdersService {
   // Generate unique order number
   private async generateOrderNumber(): Promise<string> {
+    const currentYear = new Date().getFullYear();
+    const yearPrefix = `SO-${currentYear}`;
+    
+    // Get the last order for this year
     const lastOrder = await prisma.salesOrder.findFirst({
+      where: {
+        orderNumber: {
+          startsWith: yearPrefix,
+        },
+      },
       orderBy: { createdAt: 'desc' },
       select: { orderNumber: true },
     });
 
-    if (!lastOrder) return 'SO-2025-0001';
+    if (!lastOrder) {
+      return `${yearPrefix}-0001`;
+    }
 
-    const lastNum = parseInt(lastOrder.orderNumber.split('-')[2]);
-    return `SO-2025-${String(lastNum + 1).padStart(4, '0')}`;
+    // Extract the number from format SO-YYYY-XXXX
+    const parts = lastOrder.orderNumber.split('-');
+    const lastNum = parseInt(parts[2] || '0');
+    const nextNum = lastNum + 1;
+    
+    return `${yearPrefix}-${String(nextNum).padStart(4, '0')}`;
   }
 
   async createSalesOrder(data: any, userId: string, userRole: string) {

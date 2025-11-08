@@ -31,7 +31,6 @@ const statusColors = {
 
 // Validation patterns
 const VALIDATION_PATTERNS = {
-  orderNumber: /^SO-\d{3,6}$/,
   customerName: /^[a-zA-Z\s.,'&-]{2,100}$/,
   email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   amount: /^\d+(\.\d{1,2})?$/,
@@ -39,7 +38,6 @@ const VALIDATION_PATTERNS = {
 }
 
 const VALIDATION_MESSAGES = {
-  orderNumber: 'Order number must be in format: SO-XXX (e.g., SO-001)',
   customerName: 'Customer name must be 2-100 characters (letters, spaces, and basic punctuation)',
   email: 'Please enter a valid email address',
   amount: 'Amount must be a valid number with up to 2 decimal places',
@@ -61,7 +59,6 @@ export function SalesOrdersPage() {
   const [orderDate, setOrderDate] = useState<Date | undefined>(new Date())
   const [validUntil, setValidUntil] = useState<Date | undefined>()
   const [formData, setFormData] = useState({
-    orderNumber: "",
     customer: "",
     project: "",
     amount: "",
@@ -139,16 +136,6 @@ export function SalesOrdersPage() {
   }
 
   const validateForm = () => {
-    // Order Number validation
-    if (!formData.orderNumber.trim()) {
-      setFormError(VALIDATION_MESSAGES.required + ' - Order Number')
-      return false
-    }
-    if (!VALIDATION_PATTERNS.orderNumber.test(formData.orderNumber.trim())) {
-      setFormError(VALIDATION_MESSAGES.orderNumber)
-      return false
-    }
-
     // Customer Name validation
     if (!formData.customer.trim()) {
       setFormError(VALIDATION_MESSAGES.required + ' - Customer Name')
@@ -211,7 +198,6 @@ export function SalesOrdersPage() {
     }
 
     const payload = {
-      orderNumber: formData.orderNumber,
       customerName: formData.customer,
       projectId: formData.project || undefined,
       amount: Number(formData.amount),
@@ -242,7 +228,6 @@ export function SalesOrdersPage() {
     const projectId = params.get('project')
     
     setFormData({
-      orderNumber: "",
       customer: "",
       project: projectId || "",
       amount: "",
@@ -322,22 +307,11 @@ export function SalesOrdersPage() {
                 )}
 
                 <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="order-number">Order Number *</Label>
-                    <Input
-                      id="order-number"
-                      placeholder="SO-001"
-                      value={formData.orderNumber}
-                      onChange={(e) => {
-                        const value = e.target.value.toUpperCase()
-                        setFormData((prev) => ({ ...prev, orderNumber: value }))
-                      }}
-                      maxLength={12}
-                      pattern="^SO-\d{3,6}$"
-                      title="Format: SO-XXX (e.g., SO-001)"
-                      required
-                    />
-                    <p className="text-xs text-muted-foreground">Format: SO-XXX (e.g., SO-001)</p>
+                  {/* Order Number Auto-Generated */}
+                  <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3">
+                    <p className="text-sm font-medium text-primary">
+                      ℹ️ Order number will be generated automatically (e.g., SO-2025-0001)
+                    </p>
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-2">
