@@ -483,6 +483,8 @@ export class ProjectsService {
         where: { id: projectId },
         data: { progress: 0 },
       });
+      // Invalidate project cache
+      await cacheService.del(`project:${projectId}`);
       return;
     }
 
@@ -495,6 +497,9 @@ export class ProjectsService {
       where: { id: projectId },
       data: { progress },
     });
+
+    // Invalidate project cache so next fetch gets updated data
+    await cacheService.del(`project:${projectId}`);
 
     logger.info(`Project ${projectId} progress updated to ${progress}% (${completedTasks}/${tasks.length} tasks done)`);
   }

@@ -141,6 +141,7 @@ export function ProjectDetailPage() {
       }
       
       const projectData = response.data?.data?.project || response.data?.project || response.data
+      console.log('Project data fetched:', { progress: projectData.progress, projectData })
       setProject(projectData)
     } catch (err: any) {
       setError(err.message || 'Failed to load project')
