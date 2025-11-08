@@ -1,12 +1,12 @@
 # OneFlow Project Status
 
-**Last Updated:** November 8, 2025 at 12:27 PM IST  
+**Last Updated:** November 8, 2025 at 1:25 PM IST  
 **Project:** OneFlow - Plan to Bill in One Place  
 **Event:** Hackathon - Odoo IIT GN Final Round
 
 ---
 
-## 📊 Current Status: **BACKEND 100% | FRONTEND 40% - LANDING PAGE LIVE**
+## 📊 Current Status: **BACKEND 100% | FRONTEND 70% - COMPONENTS & LAYOUT COMPLETE**
 
 ### ✅ Completed
 
@@ -233,22 +233,108 @@
   - Mobile-first responsive design
   - Clean typography and spacing
 
+#### Phase 15: Frontend - Authentication Pages
+**Completed:** November 8, 2025 at 12:10 PM IST
+- [x] **Login Page**
+  - Email and password fields
+  - Password visibility toggle (Eye icon)
+  - "Forgot password?" link
+  - "Sign up" link for new users
+  - Card-based centered design
+- [x] **Register Page**
+  - Full name, email, password, confirm password
+  - Password visibility toggle
+  - Input validation
+  - "Sign in" link for existing users
+- [x] **OTP Verification Page**
+  - 6-digit OTP input with auto-focus
+  - Keyboard navigation (Backspace support)
+  - Resend OTP functionality
+  - Clean centered card layout
+
+#### Phase 16: Frontend - Dashboard Layout & Components
+**Completed:** November 8, 2025 at 12:38 PM IST
+- [x] **Sidebar Navigation**
+  - 8 menu items (Dashboard, Projects, Timesheets, Billing, Analytics, Team, Settings, Logout)
+  - Active state highlighting with green
+  - Icon + label design
+  - Logo at top
+  - Settings and Logout at bottom
+- [x] **Dashboard Layout**
+  - Sidebar + main content area
+  - Responsive design (sidebar hidden on mobile)
+  - Clean container padding
+- [x] **Dashboard Overview Page**
+  - 4 stats cards (Active Projects, Hours Logged, Revenue, Profit)
+  - Custom icon colors per card
+  - Recent activity feed
+  - Grid layout for stats
+
+#### Phase 17: Frontend - Enhanced Button Component
+**Completed:** November 8, 2025 at 12:42 PM IST
+- [x] **Supabase-Style Buttons**
+  - Loading state with spinner animation
+  - Icon prop for left icons
+  - IconRight prop for right icons
+  - Rounded-lg for Supabase style
+  - Shadow and proper spacing
+  - Updated all landing page buttons
+
+#### Phase 18: Frontend - Core UI Components Library
+**Completed:** November 8, 2025 at 1:23 PM IST
+- [x] **Table Component**
+  - TableHeader, TableBody, TableFooter
+  - TableRow, TableHead, TableCell
+  - Hover states for rows
+  - TableCaption for descriptions
+  - Perfect for invoice/data lists
+- [x] **Select/Dropdown Component**
+  - Radix UI based with keyboard navigation
+  - SelectGroup with labels
+  - SelectItem with check indicator
+  - Chevron down/up icons
+  - Smooth animations
+- [x] **Dialog/Modal Component**
+  - Dark overlay backdrop
+  - DialogHeader, DialogFooter
+  - DialogTitle, DialogDescription
+  - Close button with X icon
+  - Smooth fade + zoom animations
+- [x] **Calendar Component**
+  - react-day-picker integration
+  - Month navigation with arrows
+  - Selected date with green highlight
+  - Today highlighting
+  - Week day labels
+- [x] **DatePicker Component**
+  - Calendar with popover trigger
+  - Button trigger with calendar icon
+  - Date formatting (e.g., "December 10th, 2025")
+  - Placeholder support
+- [x] **Popover Component**
+  - Radix UI based floating content
+  - Auto-positioning
+  - Smooth animations
+- [x] **ComponentsDemo Page**
+  - Showcase all components
+  - Working examples with state
+  - Invoice table demo
+  - Edit profile modal demo
+  - Fruit selector demo
+
 ---
 
 ### 🚧 In Progress
 
-#### Frontend - Authentication & App Pages
-- [ ] Login page with form validation
-- [ ] Registration page with multi-step flow
-- [ ] OTP verification page
-- [ ] Forgot password flow
-- [ ] Password reset page
-- [ ] Dashboard layout with sidebar
-- [ ] Projects list and detail pages
-- [ ] Tasks Kanban board
-- [ ] Timesheets module UI
-- [ ] Billing interface (orders, invoices, bills)
+#### Frontend - Application Pages
+- [ ] Projects list page with filters
+- [ ] Project detail page with tasks
+- [ ] Tasks Kanban board (drag & drop)
+- [ ] Timesheets entry and list
+- [ ] Billing pages (Sales Orders, Invoices, Bills)
 - [ ] Analytics dashboard with charts
+- [ ] Team management page
+- [ ] Settings page
 
 #### Backend - Additional Features
 - [ ] Expense management and approval workflow
