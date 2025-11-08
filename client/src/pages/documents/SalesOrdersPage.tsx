@@ -10,7 +10,15 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { DatePicker } from "@/components/ui/date-picker"
-import { Plus, Search, Loader2 } from "lucide-react"
+import { 
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { Plus, Search, Loader2, Home, Trash2 } from "lucide-react"
 import { salesOrdersApi } from "@/lib/api"
 
 const statusColors = {
@@ -38,6 +46,8 @@ export function SalesOrdersPage() {
     amount: "",
     description: "",
   })
+  const [orderLines, setOrderLines] = useState<any[]>([])
+  const [newLine, setNewLine] = useState({ product: "", quantity: "", unitPrice: "" })
 
   useEffect(() => {
     fetchOrders()
@@ -88,6 +98,16 @@ export function SalesOrdersPage() {
 
     if (!formData.customer.trim()) {
       setFormError('Customer is required')
+      return
+    }
+
+    if (!formData.amount || Number(formData.amount) <= 0) {
+      setFormError('Amount must be greater than 0')
+      return
+    }
+
+    if (validUntil && orderDate && validUntil < orderDate) {
+      setFormError('Valid until date must be after order date')
       return
     }
 
@@ -144,9 +164,34 @@ export function SalesOrdersPage() {
     return matchesSearch && matchesStatus
   })
 
+  const addOrderLine = () => {
+    if (!newLine.product || !newLine.quantity || !newLine.unitPrice) return
+    setOrderLines([...orderLines, { ...newLine, id: Date.now() }])
+    setNewLine({ product: "", quantity: "", unitPrice: "" })
+  }
+
+  const removeOrderLine = (id: number) => {
+    setOrderLines(orderLines.filter(line => line.id !== id))
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-8">
+        {/* Breadcrumbs */}
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink to="/dashboard">
+                <Home className="h-4 w-4" />
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Sales Orders</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
