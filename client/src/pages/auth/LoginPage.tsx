@@ -20,15 +20,41 @@ export function LoginPage() {
     password: "",
   })
 
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+    return emailRegex.test(email.trim())
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+
+    // Trim and sanitize inputs
+    const sanitizedEmail = formData.email.trim().toLowerCase()
+    const sanitizedPassword = formData.password.trim()
+
+    // Validation
+    if (!sanitizedEmail || !sanitizedPassword) {
+      setError('Email and password are required')
+      return
+    }
+
+    if (!validateEmail(sanitizedEmail)) {
+      setError('Please enter a valid email address')
+      return
+    }
+
+    if (sanitizedPassword.length < 6) {
+      setError('Password must be at least 6 characters')
+      return
+    }
+
     setLoading(true)
 
     try {
       const response = await authApi.login({
-        email: formData.email,
-        password: formData.password,
+        email: sanitizedEmail,
+        password: sanitizedPassword,
       })
 
       if (response.error) {

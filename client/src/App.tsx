@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { RoleProtectedRoute } from './components/RoleProtectedRoute'
 import { LandingPage } from './pages/LandingPage'
 import { LoginPage } from './pages/auth/LoginPage'
 import { RegisterPage } from './pages/auth/RegisterPage'
@@ -40,10 +41,10 @@ function App() {
           <Route path="/projects/:projectId" element={<ProtectedRoute><ProjectDetailPage /></ProtectedRoute>} />
           <Route path="/tasks/:taskId" element={<ProtectedRoute><TaskDetailPage /></ProtectedRoute>} />
           <Route path="/timesheets" element={<ProtectedRoute><TimesheetsPage /></ProtectedRoute>} />
-          <Route path="/billing" element={<ProtectedRoute><BillingPage /></ProtectedRoute>} />
-          <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
-          <Route path="/team" element={<ProtectedRoute><TeamPage /></ProtectedRoute>} />
-          <Route path="/users" element={<ProtectedRoute><UsersPage /></ProtectedRoute>} />
+          <Route path="/billing" element={<RoleProtectedRoute allowedRoles={["ADMIN", "PROJECT_MANAGER"]}><BillingPage /></RoleProtectedRoute>} />
+          <Route path="/analytics" element={<RoleProtectedRoute allowedRoles={["ADMIN", "PROJECT_MANAGER"]}><AnalyticsPage /></RoleProtectedRoute>} />
+          <Route path="/team" element={<RoleProtectedRoute allowedRoles={["ADMIN", "PROJECT_MANAGER"]}><TeamPage /></RoleProtectedRoute>} />
+          <Route path="/users" element={<RoleProtectedRoute allowedRoles={["ADMIN"]}><UsersPage /></RoleProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
           
           {/* Document routes */}

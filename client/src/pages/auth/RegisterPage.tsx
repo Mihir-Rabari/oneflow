@@ -20,19 +20,55 @@ export function RegisterPage() {
     confirmPassword: "",
   })
 
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+    return emailRegex.test(email.trim())
+  }
+
+  const validatePassword = (password: string) => {
+    // At least 8 characters, 1 uppercase, 1 lowercase, 1 number
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
+    return passwordRegex.test(password)
+  }
+
+  const sanitizeName = (name: string) => {
+    // Remove special characters, allow only letters, spaces, and basic punctuation
+    return name.trim().replace(/[^a-zA-Z\s'-]/g, '')
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
 
-    // Validate passwords match
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match")
+    // Sanitize inputs
+    const sanitizedName = sanitizeName(formData.name)
+    const sanitizedEmail = formData.email.trim().toLowerCase()
+    const sanitizedPassword = formData.password.trim()
+    const sanitizedConfirmPassword = formData.confirmPassword.trim()
+
+    // Validation
+    if (!sanitizedName || !sanitizedEmail || !sanitizedPassword) {
+      setError('All fields are required')
       return
     }
 
-    // Validate password strength
-    if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters long")
+    if (sanitizedName.length < 2) {
+      setError('Name must be at least 2 characters')
+      return
+    }
+
+    if (!validateEmail(sanitizedEmail)) {
+      setError('Please enter a valid email address')
+      return
+    }
+
+    if (!validatePassword(sanitizedPassword)) {
+      setError('Password must be at least 8 characters with uppercase, lowercase, and number')
+      return
+    }
+
+    if (sanitizedPassword !== sanitizedConfirmPassword) {
+      setError("Passwords do not match")
       return
     }
 
@@ -40,9 +76,9 @@ export function RegisterPage() {
 
     try {
       const response = await authApi.register({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
+        name: sanitizedName,
+        email: sanitizedEmail,
+        password: sanitizedPassword,
       })
 
       if (response.error) {
