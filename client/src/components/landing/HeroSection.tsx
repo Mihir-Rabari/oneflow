@@ -21,16 +21,19 @@ export function HeroSection() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-          <Button size="lg" asChild>
-            <a href="/register">
-              Get Started Free
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </a>
+          <Button 
+            size="lg" 
+            iconRight={<ArrowRight className="h-5 w-5" />}
+            onClick={() => window.location.href = '/register'}
+          >
+            Get Started Free
           </Button>
-          <Button size="lg" variant="outline" asChild>
-            <a href="#features">
-              See How It Works
-            </a>
+          <Button 
+            size="lg" 
+            variant="outline"
+            onClick={() => window.location.href = '#features'}
+          >
+            See How It Works
           </Button>
         </div>
 

@@ -26,11 +26,14 @@ export function Header() {
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-2">
-          <Button variant="ghost" asChild>
-            <a href="/login">Sign In</a>
+          <Button 
+            variant="ghost"
+            onClick={() => window.location.href = '/login'}
+          >
+            Sign In
           </Button>
-          <Button asChild>
-            <a href="/register">Get Started</a>
+          <Button onClick={() => window.location.href = '/register'}>
+            Get Started
           </Button>
         </div>
 
@@ -58,11 +61,14 @@ export function Header() {
               About
             </a>
             <div className="flex flex-col gap-2 pt-4 border-t">
-              <Button variant="ghost" asChild>
-                <a href="/login">Sign In</a>
+              <Button 
+                variant="ghost"
+                onClick={() => window.location.href = '/login'}
+              >
+                Sign In
               </Button>
-              <Button asChild>
-                <a href="/register">Get Started</a>
+              <Button onClick={() => window.location.href = '/register'}>
+                Get Started
               </Button>
             </div>
           </nav>

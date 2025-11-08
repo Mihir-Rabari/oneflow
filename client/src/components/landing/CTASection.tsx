@@ -13,16 +13,21 @@ export function CTASection() {
           Start your free trial today—no credit card required.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-          <Button size="lg" variant="secondary" asChild>
-            <a href="/register">
-              Start Free Trial
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </a>
+          <Button 
+            size="lg" 
+            variant="secondary"
+            iconRight={<ArrowRight className="h-5 w-5" />}
+            onClick={() => window.location.href = '/register'}
+          >
+            Start Free Trial
           </Button>
-          <Button size="lg" variant="outline" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10" asChild>
-            <a href="#contact">
-              Schedule a Demo
-            </a>
+          <Button 
+            size="lg" 
+            variant="outline" 
+            className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10"
+            onClick={() => window.location.href = '#contact'}
+          >
+            Schedule a Demo
           </Button>
         </div>
       </div>
