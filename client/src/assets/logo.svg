@@ -1,20 +1,20 @@
 <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Modern, minimalistic logo for OneFlow -->
+  <!-- Supabase-inspired green logo for OneFlow -->
   <!-- Circle with flowing line representing workflow -->
-  <circle cx="100" cy="100" r="90" stroke="currentColor" stroke-width="3" fill="none" opacity="0.1"/>
+  <circle cx="100" cy="100" r="90" stroke="#3ECF8E" stroke-width="3" fill="none" opacity="0.15"/>
   
   <!-- Flow symbol - continuous line forming number "1" and arrow -->
-  <path d="M 70 60 L 70 140 M 70 60 L 90 75" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 70 60 L 70 140 M 70 60 L 90 75" stroke="#3ECF8E" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
   
   <!-- Flowing curve representing continuous workflow -->
-  <path d="M 100 50 Q 130 75 130 100 Q 130 125 100 150" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M 100 50 Q 130 75 130 100 Q 130 125 100 150" stroke="#3ECF8E" stroke-width="3" stroke-linecap="round" fill="none"/>
   
   <!-- Arrow indicating forward progress -->
-  <path d="M 95 145 L 100 150 L 105 145" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 95 145 L 100 150 L 105 145" stroke="#3ECF8E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
   
-  <!-- Subtle dots representing connected stages -->
-  <circle cx="70" cy="100" r="4" fill="currentColor"/>
-  <circle cx="100" cy="85" r="4" fill="currentColor"/>
-  <circle cx="130" cy="100" r="4" fill="currentColor"/>
-  <circle cx="100" cy="115" r="4" fill="currentColor"/>
+  <!-- Gradient-filled dots representing connected stages -->
+  <circle cx="70" cy="100" r="4" fill="#3ECF8E"/>
+  <circle cx="100" cy="85" r="4" fill="#48D89E"/>
+  <circle cx="130" cy="100" r="4" fill="#3ECF8E"/>
+  <circle cx="100" cy="115" r="4" fill="#48D89E"/>
 </svg>
