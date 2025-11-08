@@ -24,8 +24,8 @@ export function RoleProtectedRoute({ children, allowedRoles }: RoleProtectedRout
 
   // Check if user's role is in the allowed roles
   if (user && !allowedRoles.includes(user.role)) {
-    // Redirect to dashboard if user doesn't have permission
-    return <Navigate to="/dashboard" replace />
+    // Show unauthorized page if user doesn't have permission
+    return <Navigate to="/unauthorized" replace />
   }
 
   return <>{children}</>

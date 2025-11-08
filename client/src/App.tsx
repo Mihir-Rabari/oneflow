@@ -23,6 +23,7 @@ import { VendorBillsPage } from './pages/documents/VendorBillsPage'
 import { ExpensesPage } from './pages/documents/ExpensesPage'
 import { ProductsPage } from './pages/documents/ProductsPage'
 import { UsersPage } from './pages/users/UsersPage'
+import { UnauthorizedPage } from './pages/UnauthorizedPage'
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/verify-otp" element={<OTPPage />} />
+          <Route path="/unauthorized" element={<UnauthorizedPage />} />
           
           {/* Protected routes */}
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
