@@ -43,6 +43,12 @@ class EmailService {
   }
 
   async sendEmail(to: string, subject: string, html: string): Promise<void> {
+    // In development, skip all actual email sending
+    if (env.NODE_ENV === 'development') {
+      logger.info(`📧 [DEV MODE] Email skipped - To: ${to}, Subject: ${subject}`);
+      return;
+    }
+    
     try {
       const mailOptions = {
         from: `${env.SMTP_FROM_NAME} <${env.SMTP_FROM_EMAIL}>`,
@@ -75,6 +81,12 @@ class EmailService {
   }
 
   async sendWelcomeEmail(to: string, name: string): Promise<void> {
+    // In development, skip actual email sending
+    if (env.NODE_ENV === 'development') {
+      logger.info(`📧 [DEV MODE] Welcome email would be sent to ${to}`);
+      return;
+    }
+    
     const html = await this.loadTemplate('welcome', { name });
     await this.sendEmail(to, 'Welcome to OneFlow!', html);
   }
@@ -98,6 +110,13 @@ class EmailService {
     password: string,
     role: string
   ): Promise<void> {
+    // In development, skip actual email sending
+    if (env.NODE_ENV === 'development') {
+      logger.info(`📧 [DEV MODE] New user credentials email for ${to}`);
+      logger.info(`   Email: ${email}, Password: ${password}, Role: ${role}`);
+      return;
+    }
+    
     const html = await this.loadTemplate('new-user-credentials', {
       name,
       email,
