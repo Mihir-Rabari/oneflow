@@ -39,14 +39,26 @@ export function TimesheetsPage() {
     
     try {
       const response = await timesheetsApi.getAll()
+      console.log('Timesheets API response:', response)
       
       if (response.error) {
         throw new Error(response.error)
       }
       
-      const timesheetsData = response.data?.data || response.data || []
-      setTimesheets(Array.isArray(timesheetsData) ? timesheetsData : [])
+      // Backend returns: { success: true, data: { timesheets: [...], pagination: {...} } }
+      let timesheetsData: any[] = []
+      if (response.data?.data?.timesheets && Array.isArray(response.data.data.timesheets)) {
+        timesheetsData = response.data.data.timesheets
+      } else if (response.data?.timesheets && Array.isArray(response.data.timesheets)) {
+        timesheetsData = response.data.timesheets
+      } else if (Array.isArray(response.data)) {
+        timesheetsData = response.data
+      }
+      
+      console.log('Parsed timesheets:', timesheetsData)
+      setTimesheets(timesheetsData)
     } catch (err: any) {
+      console.error('Failed to load timesheets:', err)
       setError(err.message || 'Failed to load timesheets')
     } finally {
       setLoading(false)
