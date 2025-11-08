@@ -192,16 +192,18 @@
 
 ---
 
-### 📝 Pending
+### 📝 Future Enhancements
 
-#### Backend
-- [ ] File upload handling (Multer)
-- [ ] Audit logging implementation
-- [ ] Advanced search and filtering
-- [ ] Data export (PDF, Excel)
+#### Backend Enhancements
+- [ ] Expense approval workflow (schema ready, needs implementation)
+- [ ] Timesheet approval system
+- [ ] Advanced search and filtering across modules
+- [ ] Data export (PDF, Excel) for reports
 - [ ] Backup and restore utilities
 - [ ] API documentation (Swagger/OpenAPI)
 - [ ] Unit and integration tests
+- [ ] File upload for task attachments
+- [ ] Email templates for more events
 
 #### Frontend
 - [ ] React + Vite setup
