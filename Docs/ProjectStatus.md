@@ -82,30 +82,47 @@
 - [x] Auto-generated passwords for admin-created users
 
 #### Phase 7: Backend - Projects Module
-- [x] Project CRUD operations
-- [x] Project team management (add/remove members)
-- [x] Budget tracking and deadlines
-- [x] Project status management
+- `GET /projects` - Get all projects (filtered by access)
+- `POST /projects` - Create project (Admin/PM only)
+- `GET /projects/:id` - Get project details
+- `PATCH /projects/:id` - Update project
+- `DELETE /projects/:id` - Delete project
+- `GET /projects/:id/stats` - Get project statistics
+- `POST /projects/:id/team` - Add team member
+- `DELETE /projects/:id/team/:userId` - Remove team member
 - [x] Project statistics (tasks, timesheets, financials)
 - [x] Project filtering and search
 - [x] Email notifications for invitations
 - [x] Role-based project access control
+
+
+#### Phase 8: Backend - Tasks Module
+- [x] Task CRUD operations
+- [x] Task assignment with email notifications
+- [x] Task comments
+- [x] Task status management (NEW, IN_PROGRESS, BLOCKED, DONE)
+- [x] Kanban board view
+- [x] Priority management (LOW, MEDIUM, HIGH, URGENT)
+- [x] Due dates and estimated hours
+- [x] Project-based filtering
+- [x] Role-based access control
+- [x] Cache invalidation for project stats
+
+#### Phase 9: Backend - Timesheets Module
+- [x] Timesheet logging (date, hours, description)
+- [x] Billable/non-billable tracking
+- [x] Project and task association
+- [x] Date range filtering
+- [x] User statistics aggregation
+- [x] Hours validation (0-24 per day)
+- [x] Cache invalidation on changes
+- [x] Role-based access control
 
 ---
 
 ### 🚧 In Progress
 
 #### Backend - Core Modules
-- [ ] **Tasks Module**
-  - [ ] Task CRUD operations
-  - [ ] Task assignment
-  - [ ] Task comments
-  - [ ] Task attachments
-  - [ ] Task status management (Kanban)
-  - [ ] Sub-tasks support
-
-- [ ] **Timesheets Module**
-  - [ ] Timesheet logging
   - [ ] Billable vs non-billable tracking
   - [ ] Timesheet approval workflow
   - [ ] Statistics and reporting
@@ -120,7 +137,9 @@
 
 - [ ] **Analytics Module**
   - [ ] Dashboard statistics
-  - [ ] Project analytics
+  - [x] Project members
+  - [x] Time tracking
+  - [ ] Reporting (analytics)
   - [ ] Revenue vs Cost tracking
   - [ ] Resource utilization
 

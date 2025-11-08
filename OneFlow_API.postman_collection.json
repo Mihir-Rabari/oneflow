@@ -1,0 +1,821 @@
+{
+	"info": {
+		"_postman_id": "oneflow-api-v1",
+		"name": "OneFlow API - Complete Collection",
+		"description": "Complete API collection for OneFlow Project Management Platform",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:4000",
+			"type": "string"
+		},
+		{
+			"key": "accessToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refreshToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "projectId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "taskId",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "🏥 Health & Metrics",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["health"]
+						}
+					}
+				},
+				{
+					"name": "Prometheus Metrics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/metrics",
+							"host": ["{{baseUrl}}"],
+							"path": ["metrics"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "🔐 Authentication",
+			"item": [
+				{
+					"name": "Register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('userId', response.data.userId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@oneflow.com\",\n  \"name\": \"Test User\",\n  \"password\": \"Test@123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "register"]
+						}
+					}
+				},
+				{
+					"name": "Verify OTP",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('accessToken', response.data.accessToken);",
+									"    pm.collectionVariables.set('refreshToken', response.data.refreshToken);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@oneflow.com\",\n  \"otp\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/verify-otp",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "verify-otp"]
+						}
+					}
+				},
+				{
+					"name": "Resend OTP",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@oneflow.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/resend-otp",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "resend-otp"]
+						}
+					}
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('accessToken', response.data.accessToken);",
+									"    pm.collectionVariables.set('refreshToken', response.data.refreshToken);",
+									"    pm.collectionVariables.set('userId', response.data.user.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@oneflow.com\",\n  \"password\": \"Test@123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Get Current User",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "me"]
+						}
+					}
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('accessToken', response.data.accessToken);",
+									"    pm.collectionVariables.set('refreshToken', response.data.refreshToken);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/refresh",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "refresh"]
+						}
+					}
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@oneflow.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/forgot-password",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "forgot-password"]
+						}
+					}
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@oneflow.com\",\n  \"otp\": \"123456\",\n  \"newPassword\": \"NewTest@123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/reset-password",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "reset-password"]
+						}
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "logout"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "👥 Users",
+			"item": [
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/users?page=1&limit=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["users"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "20"},
+								{"key": "role", "value": "TEAM_MEMBER", "disabled": true},
+								{"key": "status", "value": "ACTIVE", "disabled": true},
+								{"key": "search", "value": "john", "disabled": true}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/users/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", "{{userId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get User Stats",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/users/{{userId}}/stats",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", "{{userId}}", "stats"]
+						}
+					}
+				},
+				{
+					"name": "Create User (Admin/PM)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"newuser@oneflow.com\",\n  \"name\": \"New User\",\n  \"role\": \"TEAM_MEMBER\",\n  \"hourlyRate\": 50,\n  \"department\": \"Engineering\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": ["{{baseUrl}}"],
+							"path": ["users"]
+						}
+					}
+				},
+				{
+					"name": "Update User (Admin/PM)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Name\",\n  \"hourlyRate\": 60,\n  \"status\": \"ACTIVE\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", "{{userId}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Own Profile",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Profile Name\",\n  \"phone\": \"+1234567890\",\n  \"avatar\": \"https://example.com/avatar.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users/profile/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", "profile", "me"]
+						}
+					}
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"currentPassword\": \"Test@123456\",\n  \"newPassword\": \"NewTest@123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users/profile/change-password",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", "profile", "change-password"]
+						}
+					}
+				},
+				{
+					"name": "Delete User (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/users/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", "{{userId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "📊 Projects",
+			"item": [
+				{
+					"name": "Get All Projects",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/projects?page=1&limit=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["projects"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "20"},
+								{"key": "status", "value": "IN_PROGRESS", "disabled": true},
+								{"key": "search", "value": "project", "disabled": true}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Project By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/projects/{{projectId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["projects", "{{projectId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Project Stats",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/projects/{{projectId}}/stats",
+							"host": ["{{baseUrl}}"],
+							"path": ["projects", "{{projectId}}", "stats"]
+						}
+					}
+				},
+				{
+					"name": "Create Project",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('projectId', response.data.project.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"OneFlow Implementation\",\n  \"description\": \"Build the complete OneFlow platform\",\n  \"type\": \"INTERNAL\",\n  \"budget\": 100000,\n  \"startDate\": \"2024-01-01T00:00:00.000Z\",\n  \"deadline\": \"2024-12-31T23:59:59.999Z\",\n  \"projectManagerId\": \"{{userId}}\",\n  \"clientName\": \"Internal\",\n  \"teamMemberIds\": []\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/projects",
+							"host": ["{{baseUrl}}"],
+							"path": ["projects"]
+						}
+					}
+				},
+				{
+					"name": "Update Project",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"IN_PROGRESS\",\n  \"progress\": 25\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/projects/{{projectId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["projects", "{{projectId}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Project",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/projects/{{projectId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["projects", "{{projectId}}"]
+						}
+					}
+				},
+				{
+					"name": "Add Team Member",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"{{userId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/projects/{{projectId}}/team",
+							"host": ["{{baseUrl}}"],
+							"path": ["projects", "{{projectId}}", "team"]
+						}
+					}
+				},
+				{
+					"name": "Remove Team Member",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/projects/{{projectId}}/team/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["projects", "{{projectId}}", "team", "{{userId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "✅ Tasks",
+			"item": [
+				{
+					"name": "Get All Tasks",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks?page=1&limit=50",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "50"},
+								{"key": "projectId", "value": "{{projectId}}", "disabled": true},
+								{"key": "status", "value": "IN_PROGRESS", "disabled": true},
+								{"key": "priority", "value": "HIGH", "disabled": true},
+								{"key": "assignedToId", "value": "{{userId}}", "disabled": true}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Task By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{taskId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "{{taskId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Kanban Board",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/project/{{projectId}}/kanban",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "project", "{{projectId}}", "kanban"]
+						}
+					}
+				},
+				{
+					"name": "Create Task",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('taskId', response.data.task.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Implement authentication\",\n  \"description\": \"Build complete auth system with OTP\",\n  \"projectId\": \"{{projectId}}\",\n  \"assignedToId\": \"{{userId}}\",\n  \"priority\": \"HIGH\",\n  \"dueDate\": \"2024-12-31T23:59:59.999Z\",\n  \"estimatedHours\": 40\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks"]
+						}
+					}
+				},
+				{
+					"name": "Update Task",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"IN_PROGRESS\",\n  \"progress\": 50\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{taskId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "{{taskId}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Task",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{taskId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "{{taskId}}"]
+						}
+					}
+				},
+				{
+					"name": "Add Comment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"content\": \"Great progress on this task!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{taskId}}/comments",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "{{taskId}}", "comments"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "⏱️ Timesheets",
+			"item": [
+				{
+					"name": "Get All Timesheets",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/timesheets?page=1&limit=50",
+							"host": ["{{baseUrl}}"],
+							"path": ["timesheets"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "50"},
+								{"key": "projectId", "value": "{{projectId}}", "disabled": true},
+								{"key": "taskId", "value": "{{taskId}}", "disabled": true},
+								{"key": "startDate", "value": "2024-01-01", "disabled": true},
+								{"key": "endDate", "value": "2024-12-31", "disabled": true}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User Stats",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/timesheets/stats",
+							"host": ["{{baseUrl}}"],
+							"path": ["timesheets", "stats"],
+							"query": [
+								{"key": "startDate", "value": "2024-01-01", "disabled": true},
+								{"key": "endDate", "value": "2024-12-31", "disabled": true}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Timesheet",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"projectId\": \"{{projectId}}\",\n  \"taskId\": \"{{taskId}}\",\n  \"date\": \"2024-11-08T00:00:00.000Z\",\n  \"hours\": 8,\n  \"description\": \"Worked on authentication module\",\n  \"billable\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/timesheets",
+							"host": ["{{baseUrl}}"],
+							"path": ["timesheets"]
+						}
+					}
+				},
+				{
+					"name": "Update Timesheet",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"hours\": 7.5,\n  \"description\": \"Updated hours\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/timesheets/:timesheetId",
+							"host": ["{{baseUrl}}"],
+							"path": ["timesheets", ":timesheetId"],
+							"variable": [{"key": "timesheetId", "value": ""}]
+						}
+					}
+				},
+				{
+					"name": "Delete Timesheet",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{accessToken}}"}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/timesheets/:timesheetId",
+							"host": ["{{baseUrl}}"],
+							"path": ["timesheets", ":timesheetId"],
+							"variable": [{"key": "timesheetId", "value": ""}]
+						}
+					}
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{accessToken}}",
+				"type": "string"
+			}
+		]
+	}
+}
