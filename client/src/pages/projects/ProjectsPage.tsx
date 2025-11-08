@@ -60,7 +60,7 @@ export function ProjectsPage() {
   })
 
   const { user } = useAuth()
-  const canCreateProject = user && ["ADMIN", "PROJECT_MANAGER"].includes(user.role)
+  const canCreateProject = !!user // Allow all authenticated users to create projects
 
   useEffect(() => {
     fetchProjects()
