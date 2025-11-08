@@ -12,6 +12,7 @@ import { metricsHandler, httpRequestDuration, httpRequestTotal } from './metrics
 // Import routes
 import authRoutes from './modules/auth/auth.routes';
 import usersRoutes from './modules/users/users.routes';
+import projectsRoutes from './modules/projects/projects.routes';
 
 const app: Application = express();
 
@@ -73,7 +74,8 @@ app.get('/metrics', metricsHandler);
 // API routes
 app.use('/auth', authRoutes);
 app.use('/users', usersRoutes);
-// TODO: Add other module routes
+app.use('/projects', projectsRoutes);
+// TODO: Add other module routes (tasks, timesheets, billing, analytics)
 
 // 404 handler
 app.use(notFoundHandler);
