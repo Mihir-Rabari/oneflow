@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Logo } from "@/components/Logo"
-import { Eye, EyeOff, AlertCircle } from "lucide-react"
-import { authApi, setAuthToken } from "@/lib/api"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Loader2 } from "lucide-react"
+import { authApi } from "@/lib/api"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -33,11 +34,13 @@ export function LoginPage() {
         setError(response.error)
       } else if (response.data) {
         // Store token
-        if (response.data.accessToken) {
-          setAuthToken(response.data.accessToken)
+        if (response.data?.success) {
+          // Save token using auth context and navigate to dashboard
+          login(response.data.data.accessToken, response.data.data.user)
+          navigate('/dashboard')
+        } else {
+          setError(response.error || 'Login failed')
         }
-        // Navigate to dashboard
-        navigate('/dashboard')
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.')

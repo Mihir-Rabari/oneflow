@@ -1,11 +1,13 @@
-import { useState, useRef, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useState, useEffect } from "react"
+import { useNavigate, useLocation } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Logo } from "@/components/Logo"
-import { AlertCircle } from "lucide-react"
-import { authApi, setAuthToken } from "@/lib/api"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Loader2 } from "lucide-react"
+import { authApi } from "@/lib/api"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function OTPPage() {
   const navigate = useNavigate()
@@ -65,14 +67,13 @@ export function OTPPage() {
       if (response.error) {
         setError(response.error)
       } else if (response.data) {
-        // Store token if provided
-        if ((response.data as any).accessToken) {
-          setAuthToken((response.data as any).accessToken)
+        if (response.data?.success) {
+          // Save token using auth context and navigate to dashboard
+          login(response.data.data.accessToken, response.data.data.user)
+          navigate('/dashboard')
+        } else {
+          setError(response.error || 'Invalid OTP')
         }
-        // Clear stored email
-        localStorage.removeItem('verifyEmail')
-        // Navigate to dashboard
-        navigate('/dashboard')
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.')
