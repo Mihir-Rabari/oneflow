@@ -9,6 +9,8 @@ import { logger } from '@/utils/logger';
 
 export class UsersService {
   async getAllUsers(page = 1, limit = 20, role?: UserRole, status?: UserStatus, search?: string) {
+    console.log('👥 Get All Users Request:', { page, limit, role, status, search });
+
     const skip = (page - 1) * limit;
     
     const where: any = {};
@@ -21,6 +23,8 @@ export class UsersService {
         { email: { contains: search, mode: 'insensitive' } },
       ];
     }
+
+    console.log('🔍 Users Where Filter:', JSON.stringify(where));
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({
@@ -47,7 +51,9 @@ export class UsersService {
       prisma.user.count({ where }),
     ]);
 
-    return {
+    console.log('📊 Users Query Results:', { usersCount: users.length, total });
+
+    const result = {
       users,
       pagination: {
         page,
@@ -56,6 +62,10 @@ export class UsersService {
         totalPages: Math.ceil(total / limit),
       },
     };
+
+    console.log('✅ Returning Users:', JSON.stringify({ usersCount: result.users.length, pagination: result.pagination }, null, 2));
+
+    return result;
   }
 
   async getUserById(userId: string) {

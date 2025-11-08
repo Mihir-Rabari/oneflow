@@ -14,6 +14,8 @@ export class ProjectsService {
     status?: ProjectStatus,
     search?: string
   ) {
+    console.log('📁 Get All Projects Request:', { userId, userRole, page, limit, status, search });
+
     const skip = (page - 1) * limit;
 
     const where: any = {};
@@ -30,6 +32,8 @@ export class ProjectsService {
     if (search) {
       where.name = { contains: search, mode: 'insensitive' };
     }
+
+    console.log('🔍 Projects Where Filter:', JSON.stringify(where));
 
     const [projects, total] = await Promise.all([
       prisma.project.findMany({
@@ -58,7 +62,9 @@ export class ProjectsService {
       prisma.project.count({ where }),
     ]);
 
-    return {
+    console.log('📊 Projects Query Results:', { projectsCount: projects.length, total, page, totalPages: Math.ceil(total / limit) });
+
+    const result = {
       projects,
       pagination: {
         page,
@@ -67,6 +73,10 @@ export class ProjectsService {
         totalPages: Math.ceil(total / limit),
       },
     };
+
+    console.log('✅ Returning Projects:', JSON.stringify({ projectsCount: result.projects.length, pagination: result.pagination }, null, 2));
+
+    return result;
   }
 
   async getProjectById(projectId: string, userId: string, userRole: string) {
