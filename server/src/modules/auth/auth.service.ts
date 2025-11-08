@@ -44,8 +44,8 @@ export class AuthService {
     await otpService.storeOTP(user.email, otp, 'email_verification');
 
     // Send OTP email
-    await emailService.sendOTPEmail(user.email, user.name, otp);
-    
+    await emailService.sendOTP(user.email, otp, user.name);
+
     logger.info(`OTP sent to ${user.email} for registration`);
 
     return {
@@ -148,7 +148,7 @@ export class AuthService {
     await otpService.storeOTP(email, otp, 'email_verification');
 
     // Send OTP email
-    await emailService.sendOTPEmail(user.email, user.name, otp);
+    await emailService.sendOTP(email, otp, user.name);
 
     logger.info(`OTP resent to ${email}`);
 
