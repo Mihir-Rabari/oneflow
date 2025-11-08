@@ -152,6 +152,9 @@ export class TasksService {
     // Invalidate project stats cache
     await cacheService.del(`project:${data.projectId}:stats`);
 
+    // Update project progress
+    await this.updateProjectProgress(data.projectId);
+
     // Send email notification if assigned
     if (data.assignedToId && task.assignedTo) {
       await emailService.sendTaskAssignment(
@@ -219,9 +222,38 @@ export class TasksService {
     // Invalidate project stats cache
     await cacheService.del(`project:${task.projectId}:stats`);
 
+    // Update project progress if status changed
+    if (data.status) {
+      await this.updateProjectProgress(task.projectId);
+    }
+
     logger.info(`Task ${taskId} updated`);
 
     return updatedTask;
+  }
+
+  private async updateProjectProgress(projectId: string) {
+    // Get all tasks for the project
+    const tasks = await prisma.task.findMany({
+      where: { projectId },
+      select: { status: true },
+    });
+
+    if (tasks.length === 0) {
+      return;
+    }
+
+    // Calculate progress based on task completion
+    const completedTasks = tasks.filter(t => t.status === TaskStatus.DONE).length;
+    const progress = Math.round((completedTasks / tasks.length) * 100);
+
+    // Update project progress
+    await prisma.project.update({
+      where: { id: projectId },
+      data: { progress },
+    });
+
+    logger.info(`Project ${projectId} progress updated to ${progress}%`);
   }
 
   async deleteTask(taskId: string, userId: string, userRole: string) {
@@ -241,10 +273,15 @@ export class TasksService {
       throw new ForbiddenError('Only project manager or admin can delete task');
     }
 
+    const projectId = task.projectId;
+    
     await prisma.task.delete({ where: { id: taskId } });
 
     // Invalidate project stats cache
-    await cacheService.del(`project:${task.projectId}:stats`);
+    await cacheService.del(`project:${projectId}:stats`);
+
+    // Update project progress
+    await this.updateProjectProgress(projectId);
 
     logger.info(`Task ${taskId} deleted`);
 
