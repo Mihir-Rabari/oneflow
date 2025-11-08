@@ -86,6 +86,7 @@ async function main() {
   // Create 3 projects
   console.log('📁 Creating projects...');
 
+  // Today is Nov 9, 2025 - use realistic dates
   const project1 = await prisma.project.create({
     data: {
       name: 'E-Commerce Platform',
@@ -96,9 +97,9 @@ async function main() {
       spent: 15000,
       revenue: 20000,
       profit: 5000,
-      startDate: new Date('2024-11-01'),
-      endDate: new Date('2025-02-28'),
-      deadline: new Date('2025-02-15'),
+      startDate: new Date('2025-10-01'),
+      endDate: new Date('2026-02-28'),
+      deadline: new Date('2026-02-15'),
       progress: 35,
       projectManagerId: pm1.id,
       clientName: 'Tech Retail Inc',
@@ -116,9 +117,9 @@ async function main() {
       spent: 25000,
       revenue: 40000,
       profit: 15000,
-      startDate: new Date('2024-10-15'),
-      endDate: new Date('2025-03-30'),
-      deadline: new Date('2025-03-15'),
+      startDate: new Date('2025-09-15'),
+      endDate: new Date('2026-03-30'),
+      deadline: new Date('2026-03-15'),
       progress: 45,
       projectManagerId: pm2.id,
       clientName: 'FinTech Solutions',
@@ -136,9 +137,9 @@ async function main() {
       spent: 0,
       revenue: 0,
       profit: 0,
-      startDate: new Date('2025-01-10'),
-      endDate: new Date('2025-04-30'),
-      deadline: new Date('2025-04-15'),
+      startDate: new Date('2025-12-01'),
+      endDate: new Date('2026-04-30'),
+      deadline: new Date('2026-04-15'),
       progress: 0,
       projectManagerId: pm1.id,
       clientName: 'Global Corp',
@@ -175,8 +176,8 @@ async function main() {
       projectId: project1.id,
       assignedToId: dev1.id,
       createdById: pm1.id,
-      startDate: new Date('2024-11-01'),
-      dueDate: new Date('2024-11-05'),
+      startDate: new Date('2025-10-01'),
+      dueDate: new Date('2025-10-05'),
     },
   });
 
@@ -189,8 +190,8 @@ async function main() {
       projectId: project1.id,
       assignedToId: dev2.id,
       createdById: pm1.id,
-      startDate: new Date('2024-11-03'),
-      dueDate: new Date('2024-11-10'),
+      startDate: new Date('2025-10-03'),
+      dueDate: new Date('2025-10-10'),
     },
   });
 
@@ -203,8 +204,8 @@ async function main() {
       projectId: project1.id,
       assignedToId: dev1.id,
       createdById: pm1.id,
-      startDate: new Date('2024-11-15'),
-      dueDate: new Date('2024-12-01'),
+      startDate: new Date('2025-11-05'),
+      dueDate: new Date('2025-11-25'),
     },
   });
 
@@ -217,8 +218,8 @@ async function main() {
       projectId: project2.id,
       assignedToId: dev1.id,
       createdById: pm2.id,
-      startDate: new Date('2024-10-20'),
-      dueDate: new Date('2024-11-01'),
+      startDate: new Date('2025-09-20'),
+      dueDate: new Date('2025-10-05'),
     },
   });
 
@@ -231,8 +232,8 @@ async function main() {
       projectId: project2.id,
       assignedToId: dev2.id,
       createdById: pm2.id,
-      startDate: new Date('2024-11-10'),
-      dueDate: new Date('2024-11-25'),
+      startDate: new Date('2025-11-01'),
+      dueDate: new Date('2025-11-20'),
     },
   });
 
@@ -245,7 +246,7 @@ async function main() {
       projectId: project3.id,
       assignedToId: dev2.id,
       createdById: pm1.id,
-      dueDate: new Date('2025-01-20'),
+      dueDate: new Date('2025-12-15'),
     },
   });
 
@@ -266,7 +267,7 @@ async function main() {
         userId: dev1.id,
         projectId: project1.id,
         taskId: task3!.id,
-        date: new Date('2024-11-15'),
+        date: new Date('2025-11-06'),
         hours: 8,
         description: 'Payment gateway integration',
         isBillable: true,
@@ -275,7 +276,7 @@ async function main() {
         userId: dev1.id,
         projectId: project1.id,
         taskId: task3!.id,
-        date: new Date('2024-11-16'),
+        date: new Date('2025-11-07'),
         hours: 6,
         description: 'Stripe webhook setup',
         isBillable: true,
@@ -284,7 +285,7 @@ async function main() {
         userId: dev2.id,
         projectId: project1.id,
         taskId: task2!.id,
-        date: new Date('2024-11-16'),
+        date: new Date('2025-10-08'),
         hours: 7,
         description: 'UI design and styling',
         isBillable: true,
@@ -293,7 +294,7 @@ async function main() {
         userId: dev1.id,
         projectId: project2.id,
         taskId: task4!.id,
-        date: new Date('2024-11-10'),
+        date: new Date('2025-10-01'),
         hours: 8,
         description: 'Auth API development',
         isBillable: true,
@@ -302,7 +303,7 @@ async function main() {
         userId: dev2.id,
         projectId: project2.id,
         taskId: task5!.id,
-        date: new Date('2024-11-12'),
+        date: new Date('2025-11-05'),
         hours: 5,
         description: 'Transaction UI design',
         isBillable: true,

@@ -40,6 +40,19 @@ export const createProjectSchema = z.object({
     teamMemberIds: z.array(z.string().uuid()).optional(),
   }).refine(
     (data) => {
+      // Validate: startDate cannot be in the past (allow today)
+      const startDate = new Date(data.startDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      startDate.setHours(0, 0, 0, 0);
+      return startDate >= today;
+    },
+    {
+      message: 'Start date cannot be in the past',
+      path: ['startDate'],
+    }
+  ).refine(
+    (data) => {
       // Validate date logic: endDate must be after startDate
       if (data.endDate && data.startDate) {
         return new Date(data.endDate) > new Date(data.startDate);
