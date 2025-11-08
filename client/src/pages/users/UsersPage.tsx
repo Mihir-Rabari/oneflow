@@ -40,10 +40,29 @@ export function UsersPage() {
     try {
       const response = await usersApi.getAll()
       if (response.error) throw new Error(response.error)
-      const usersData = response.data?.data || response.data || []
-      setUsers(Array.isArray(usersData) ? usersData : [])
+      
+      // Handle different response structures
+      let usersData = []
+      if (response.data) {
+        // Try nested data first
+        if (response.data.data && Array.isArray(response.data.data)) {
+          usersData = response.data.data
+        } 
+        // Try direct data
+        else if (Array.isArray(response.data)) {
+          usersData = response.data
+        }
+        // Try users array
+        else if (response.data.users && Array.isArray(response.data.users)) {
+          usersData = response.data.users
+        }
+      }
+      
+      console.log('Fetched users:', usersData)
+      setUsers(usersData)
     } catch (err: any) {
       console.error('Failed to load users:', err)
+      alert('Failed to load users: ' + err.message)
     } finally {
       setLoading(false)
     }
@@ -73,9 +92,10 @@ export function UsersPage() {
       
       if (response.error) throw new Error(response.error)
       
+      alert('User created successfully! A temporary password has been sent to their email.')
       setIsDialogOpen(false)
       resetForm()
-      fetchUsers()
+      await fetchUsers()
     } catch (err: any) {
       setFormError(err.message || 'Failed to create user')
     } finally {
