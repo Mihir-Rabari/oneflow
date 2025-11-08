@@ -44,8 +44,8 @@ function App() {
           <Route path="/tasks/:taskId" element={<ProtectedRoute><TaskDetailPage /></ProtectedRoute>} />
           <Route path="/timesheets" element={<ProtectedRoute><TimesheetsPage /></ProtectedRoute>} />
           <Route path="/billing" element={<RoleProtectedRoute allowedRoles={["ADMIN", "PROJECT_MANAGER"]}><BillingPage /></RoleProtectedRoute>} />
-          <Route path="/analytics" element={<RoleProtectedRoute allowedRoles={["ADMIN", "PROJECT_MANAGER"]}><AnalyticsPage /></RoleProtectedRoute>} />
-          <Route path="/team" element={<RoleProtectedRoute allowedRoles={["ADMIN", "PROJECT_MANAGER"]}><TeamPage /></RoleProtectedRoute>} />
+          <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
+          <Route path="/team" element={<ProtectedRoute><TeamPage /></ProtectedRoute>} />
           <Route path="/users" element={<RoleProtectedRoute allowedRoles={["ADMIN"]}><UsersPage /></RoleProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
           

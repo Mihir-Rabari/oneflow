@@ -25,8 +25,8 @@ const menuItems = [
   { icon: FolderKanban, label: "Projects", href: "/projects", roles: [] }, // All roles
   { icon: Clock, label: "Timesheets", href: "/timesheets", roles: [] }, // All roles
   { icon: FileText, label: "Billing", href: "/billing", roles: ["ADMIN", "PROJECT_MANAGER"] },
-  { icon: BarChart3, label: "Analytics", href: "/analytics", roles: ["ADMIN", "PROJECT_MANAGER"] },
-  { icon: Users, label: "Team", href: "/team", roles: ["ADMIN", "PROJECT_MANAGER"] },
+  { icon: BarChart3, label: "Analytics", href: "/analytics", roles: [] }, // All roles (data filtered by backend)
+  { icon: Users, label: "Team", href: "/team", roles: [] }, // All roles (data filtered by backend)
   { icon: UserCog, label: "User Management", href: "/users", roles: ["ADMIN"] }, // Admin only
 ]
 
