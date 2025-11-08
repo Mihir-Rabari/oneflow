@@ -29,22 +29,43 @@ export function DashboardPage() {
         analyticsApi.getDashboardStats()
       ])
 
+      console.log('Dashboard - Projects response:', projectsRes)
+      console.log('Dashboard - Analytics response:', dashboardRes)
+
       if (projectsRes.error) throw new Error(projectsRes.error)
       if (dashboardRes.error) throw new Error(dashboardRes.error)
 
-      const projectsData = projectsRes.data?.data || projectsRes.data || []
-      const projects = Array.isArray(projectsData) ? projectsData : []
-      const dashboardStats = dashboardRes.data?.data || dashboardRes.data || {}
+      // Parse projects: { success: true, data: { projects: [...], pagination: {...} } }
+      let projects: any[] = []
+      if (projectsRes.data?.data?.projects) {
+        projects = projectsRes.data.data.projects
+      } else if (projectsRes.data?.projects) {
+        projects = projectsRes.data.projects
+      } else if (Array.isArray(projectsRes.data)) {
+        projects = projectsRes.data
+      }
+
+      // Parse dashboard stats: { success: true, data: { overview: {...}, financials: {...}, recentProjects: [...] } }
+      const dashboardStats = dashboardRes.data || {}
+      const overview = dashboardStats.overview || {}
+      const financials = dashboardStats.financials || {}
+      const recentProjectsData = dashboardStats.recentProjects || []
+
+      console.log('Dashboard - Parsed projects:', projects)
+      console.log('Dashboard - Overview stats:', overview)
+      console.log('Dashboard - Financials:', financials)
 
       setStats({
-        activeProjects: projects.filter((p: any) => p.status === 'ACTIVE').length,
-        hoursLogged: dashboardStats.totalHours || 0,
-        revenue: dashboardStats.totalRevenue || 0,
-        profit: dashboardStats.totalProfit || 0
+        activeProjects: overview.activeProjects || 0,
+        hoursLogged: financials.totalHoursLogged || 0,
+        revenue: financials.totalRevenue || 0,
+        profit: financials.profit || 0
       })
       
-      setRecentProjects(projects.slice(0, 4))
+      // Use recentProjects from analytics API, fallback to projects list
+      setRecentProjects(recentProjectsData.length > 0 ? recentProjectsData : projects.slice(0, 4))
     } catch (err: any) {
+      console.error('Dashboard error:', err)
       setError(err.message || 'Failed to load dashboard data')
     } finally {
       setLoading(false)
