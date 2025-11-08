@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FolderKanban, Clock, FileText, TrendingUp, Loader2 } from "lucide-react"
 import { analyticsApi, projectsApi } from "@/lib/api"
+import { ActivityFeed } from "@/components/ActivityFeed"
 
 export function DashboardPage() {
   const [loading, setLoading] = useState(true)
@@ -153,32 +154,8 @@ export function DashboardPage() {
           ))}
         </div>
 
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Your latest project updates and activities</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentProjects.length > 0 ? (
-                recentProjects.map((project: any) => (
-                  <div key={project.id} className="flex items-center gap-4 p-3 rounded-lg border">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <FolderKanban className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{project.name}</p>
-                      <p className="text-xs text-muted-foreground">{project.description}</p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">No recent projects</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Recent Activity Feed with Filtering */}
+        <ActivityFeed limit={15} showFilters={true} />
       </div>
     </DashboardLayout>
   )
