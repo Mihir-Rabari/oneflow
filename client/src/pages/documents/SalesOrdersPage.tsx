@@ -19,7 +19,8 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Plus, Search, Loader2, Home, Trash2 } from "lucide-react"
-import { salesOrdersApi } from "@/lib/api"
+import { salesOrdersApi, projectsApi } from "@/lib/api"
+import { useLocation } from "react-router-dom"
 
 const statusColors = {
   DRAFT: "secondary",
@@ -27,6 +28,26 @@ const statusColors = {
   APPROVED: "default",
   CANCELLED: "destructive",
 } as const
+
+// Validation patterns
+const VALIDATION_PATTERNS = {
+  orderNumber: /^SO-\d{3,6}$/,
+  customerName: /^[a-zA-Z\s.,'&-]{2,100}$/,
+  email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  amount: /^\d+(\.\d{1,2})?$/,
+  phone: /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/,
+}
+
+const VALIDATION_MESSAGES = {
+  orderNumber: 'Order number must be in format: SO-XXX (e.g., SO-001)',
+  customerName: 'Customer name must be 2-100 characters (letters, spaces, and basic punctuation)',
+  email: 'Please enter a valid email address',
+  amount: 'Amount must be a valid number with up to 2 decimal places',
+  amountPositive: 'Amount must be greater than 0',
+  required: 'This field is required',
+  dateInvalid: 'Valid until date must be after order date',
+  descriptionMax: 'Description must not exceed 500 characters',
+}
 
 export function SalesOrdersPage() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -48,10 +69,40 @@ export function SalesOrdersPage() {
   })
   const [orderLines, setOrderLines] = useState<any[]>([])
   const [newLine, setNewLine] = useState({ product: "", quantity: "", unitPrice: "" })
+  const [projects, setProjects] = useState<any[]>([])
+  const location = useLocation()
 
   useEffect(() => {
     fetchOrders()
-  }, [])
+    fetchProjects()
+    
+    // Auto-open modal if project parameter exists
+    const params = new URLSearchParams(location.search)
+    const projectId = params.get('project')
+    if (projectId) {
+      setFormData(prev => ({ ...prev, project: projectId }))
+      setIsDialogOpen(true)
+    }
+  }, [location.search])
+
+  const fetchProjects = async () => {
+    try {
+      const response = await projectsApi.getAll()
+      let projectsData: any[] = []
+      
+      if (response.data?.data?.projects && Array.isArray(response.data.data.projects)) {
+        projectsData = response.data.data.projects
+      } else if (response.data?.projects && Array.isArray(response.data.projects)) {
+        projectsData = response.data.projects
+      } else if (Array.isArray(response.data)) {
+        projectsData = response.data
+      }
+      
+      setProjects(projectsData)
+    } catch (err) {
+      console.error('Failed to fetch projects:', err)
+    }
+  }
 
   const fetchOrders = async () => {
     setLoading(true)
@@ -87,27 +138,75 @@ export function SalesOrdersPage() {
     }
   }
 
+  const validateForm = () => {
+    // Order Number validation
+    if (!formData.orderNumber.trim()) {
+      setFormError(VALIDATION_MESSAGES.required + ' - Order Number')
+      return false
+    }
+    if (!VALIDATION_PATTERNS.orderNumber.test(formData.orderNumber.trim())) {
+      setFormError(VALIDATION_MESSAGES.orderNumber)
+      return false
+    }
+
+    // Customer Name validation
+    if (!formData.customer.trim()) {
+      setFormError(VALIDATION_MESSAGES.required + ' - Customer Name')
+      return false
+    }
+    if (!VALIDATION_PATTERNS.customerName.test(formData.customer.trim())) {
+      setFormError(VALIDATION_MESSAGES.customerName)
+      return false
+    }
+
+    // Project validation
+    if (!formData.project) {
+      setFormError(VALIDATION_MESSAGES.required + ' - Project')
+      return false
+    }
+
+    // Amount validation
+    if (!formData.amount || formData.amount.trim() === '') {
+      setFormError(VALIDATION_MESSAGES.required + ' - Amount')
+      return false
+    }
+    if (!VALIDATION_PATTERNS.amount.test(formData.amount)) {
+      setFormError(VALIDATION_MESSAGES.amount)
+      return false
+    }
+    if (Number(formData.amount) <= 0) {
+      setFormError(VALIDATION_MESSAGES.amountPositive)
+      return false
+    }
+    if (Number(formData.amount) > 99999999.99) {
+      setFormError('Amount must not exceed ₹99,999,999.99')
+      return false
+    }
+
+    // Description validation
+    if (formData.description && formData.description.length > 500) {
+      setFormError(VALIDATION_MESSAGES.descriptionMax)
+      return false
+    }
+
+    // Date validation
+    if (!orderDate) {
+      setFormError('Order date is required')
+      return false
+    }
+    if (validUntil && orderDate && validUntil < orderDate) {
+      setFormError(VALIDATION_MESSAGES.dateInvalid)
+      return false
+    }
+
+    return true
+  }
+
   const handleCreateOrder = async (e: React.FormEvent) => {
     e.preventDefault()
     setFormError(null)
 
-    if (!formData.orderNumber.trim()) {
-      setFormError('Order number is required')
-      return
-    }
-
-    if (!formData.customer.trim()) {
-      setFormError('Customer is required')
-      return
-    }
-
-    if (!formData.amount || Number(formData.amount) <= 0) {
-      setFormError('Amount must be greater than 0')
-      return
-    }
-
-    if (validUntil && orderDate && validUntil < orderDate) {
-      setFormError('Valid until date must be after order date')
+    if (!validateForm()) {
       return
     }
 
@@ -138,16 +237,21 @@ export function SalesOrdersPage() {
   }
 
   const resetForm = () => {
+    // Check if we should keep project ID from URL
+    const params = new URLSearchParams(location.search)
+    const projectId = params.get('project')
+    
     setFormData({
       orderNumber: "",
       customer: "",
-      project: "",
+      project: projectId || "",
       amount: "",
       description: "",
     })
     setOrderDate(new Date())
     setValidUntil(undefined)
     setFormError(null)
+    setOrderLines([])
   }
 
   const handleDialogChange = (open: boolean) => {
@@ -219,49 +323,76 @@ export function SalesOrdersPage() {
 
                 <div className="grid gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="order-number">Order Number</Label>
+                    <Label htmlFor="order-number">Order Number *</Label>
                     <Input
                       id="order-number"
-                      placeholder="SO001"
+                      placeholder="SO-001"
                       value={formData.orderNumber}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, orderNumber: e.target.value }))}
+                      onChange={(e) => {
+                        const value = e.target.value.toUpperCase()
+                        setFormData((prev) => ({ ...prev, orderNumber: value }))
+                      }}
+                      maxLength={12}
+                      pattern="^SO-\d{3,6}$"
+                      title="Format: SO-XXX (e.g., SO-001)"
                       required
                     />
+                    <p className="text-xs text-muted-foreground">Format: SO-XXX (e.g., SO-001)</p>
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor="customer">Customer</Label>
+                      <Label htmlFor="customer">Customer Name *</Label>
                       <Input
                         id="customer"
-                        placeholder="Customer name"
+                        placeholder="Acme Corporation"
                         value={formData.customer}
                         onChange={(e) => setFormData((prev) => ({ ...prev, customer: e.target.value }))}
+                        minLength={2}
+                        maxLength={100}
                         required
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="project">Project</Label>
-                      <Input
-                        id="project"
-                        placeholder="Select project"
+                      <Label htmlFor="project">Project *</Label>
+                      <Select
                         value={formData.project}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, project: e.target.value }))}
-                      />
+                        onValueChange={(value) => setFormData((prev) => ({ ...prev, project: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select project" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {projects.map((project) => (
+                            <SelectItem key={project.id} value={project.id}>
+                              {project.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="amount">Amount (₹)</Label>
+                    <Label htmlFor="amount">Amount (₹) *</Label>
                     <Input
                       id="amount"
                       type="number"
-                      min="0"
-                      placeholder="0.00"
+                      min="0.01"
+                      max="99999999.99"
+                      step="0.01"
+                      placeholder="25000.00"
                       value={formData.amount}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, amount: e.target.value }))}
+                      onChange={(e) => {
+                        const value = e.target.value
+                        // Allow only valid decimal format
+                        if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+                          setFormData((prev) => ({ ...prev, amount: value }))
+                        }
+                      }}
                       required
                     />
+                    <p className="text-xs text-muted-foreground">Enter amount up to ₹99,999,999.99</p>
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-2">
@@ -276,14 +407,27 @@ export function SalesOrdersPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
+                    <Label htmlFor="description">
+                      Description 
+                      {formData.description && (
+                        <span className="text-muted-foreground ml-2">
+                          ({formData.description.length}/500)
+                        </span>
+                      )}
+                    </Label>
                     <Textarea
                       id="description"
-                      placeholder="Order description"
+                      placeholder="Order description (optional)"
                       value={formData.description}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+                      onChange={(e) => {
+                        if (e.target.value.length <= 500) {
+                          setFormData((prev) => ({ ...prev, description: e.target.value }))
+                        }
+                      }}
                       rows={3}
+                      maxLength={500}
                     />
+                    <p className="text-xs text-muted-foreground">Maximum 500 characters</p>
                   </div>
 
                   {/* Order Lines Section */}
