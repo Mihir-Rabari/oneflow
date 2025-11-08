@@ -1,7 +1,10 @@
+import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, CheckCircle2 } from "lucide-react"
 
 export function HeroSection() {
+  const navigate = useNavigate()
+  
   return (
     <section className="container py-24 md:py-32">
       <div className="mx-auto max-w-4xl text-center space-y-8">
@@ -24,7 +27,7 @@ export function HeroSection() {
           <Button 
             size="lg" 
             iconRight={<ArrowRight className="h-5 w-5" />}
-            onClick={() => window.location.href = '/register'}
+            onClick={() => navigate('/register')}
           >
             Get Started Free
           </Button>

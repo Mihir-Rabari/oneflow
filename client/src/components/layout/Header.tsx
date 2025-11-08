@@ -1,10 +1,12 @@
+import { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { Menu, X } from "lucide-react"
 import { Logo } from "@/components/Logo"
 import { Button } from "@/components/ui/button"
-import { Menu, X } from "lucide-react"
-import { useState } from "react"
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const navigate = useNavigate()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -28,11 +30,11 @@ export function Header() {
         <div className="hidden md:flex items-center gap-2">
           <Button 
             variant="ghost"
-            onClick={() => window.location.href = '/login'}
+            onClick={() => navigate('/login')}
           >
             Sign In
           </Button>
-          <Button onClick={() => window.location.href = '/register'}>
+          <Button onClick={() => navigate('/register')}>
             Get Started
           </Button>
         </div>
@@ -63,11 +65,17 @@ export function Header() {
             <div className="flex flex-col gap-2 pt-4 border-t">
               <Button 
                 variant="ghost"
-                onClick={() => window.location.href = '/login'}
+                onClick={() => {
+                  navigate('/login')
+                  setMobileMenuOpen(false)
+                }}
               >
                 Sign In
               </Button>
-              <Button onClick={() => window.location.href = '/register'}>
+              <Button onClick={() => {
+                navigate('/register')
+                setMobileMenuOpen(false)
+              }}>
                 Get Started
               </Button>
             </div>

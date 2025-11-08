@@ -1,7 +1,10 @@
 import { Button } from "@/components/ui/button"
+import { useNavigate } from "react-router-dom"
 import { ArrowRight } from "lucide-react"
 
 export function CTASection() {
+  const navigate = useNavigate()
+  
   return (
     <section className="container py-24">
       <div className="mx-auto max-w-4xl bg-primary text-primary-foreground rounded-2xl p-12 md:p-16 text-center space-y-6">
@@ -17,15 +20,15 @@ export function CTASection() {
             size="lg" 
             variant="secondary"
             iconRight={<ArrowRight className="h-5 w-5" />}
-            onClick={() => window.location.href = '/register'}
+            onClick={() => navigate('/register')}
           >
-            Start Free Trial
+            Start Your Free Trial
           </Button>
           <Button 
             size="lg" 
             variant="outline" 
             className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10"
-            onClick={() => window.location.href = '#contact'}
+            onClick={() => navigate('/login')}
           >
             Schedule a Demo
           </Button>
