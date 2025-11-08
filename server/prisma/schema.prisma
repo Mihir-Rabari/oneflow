@@ -189,6 +189,7 @@ model Task {
   createdById    String
   estimatedHours Float?
   actualHours    Float        @default(0)
+  progress       Int          @default(0)
   dueDate        DateTime?
   startDate      DateTime?
   completedDate  DateTime?
