@@ -39,26 +39,33 @@ export function UsersPage() {
     setLoading(true)
     try {
       const response = await usersApi.getAll()
-      if (response.error) throw new Error(response.error)
+      console.log('Raw API response:', response)
       
-      // Handle different response structures
-      let usersData = []
+      if (response.error) {
+        throw new Error(response.error)
+      }
+      
+      // Backend returns: { success: true, data: { users: [...], pagination: {...} } }
+      let usersData: any[] = []
+      
       if (response.data) {
-        // Try nested data first
-        if (response.data.data && Array.isArray(response.data.data)) {
-          usersData = response.data.data
-        } 
-        // Try direct data
-        else if (Array.isArray(response.data)) {
-          usersData = response.data
+        // Check for response.data.data.users (nested)
+        if (response.data.data?.users && Array.isArray(response.data.data.users)) {
+          usersData = response.data.data.users
         }
-        // Try users array
+        // Check for response.data.users (direct)
         else if (response.data.users && Array.isArray(response.data.users)) {
           usersData = response.data.users
         }
+        // Check for response.data (direct array - fallback)
+        else if (Array.isArray(response.data)) {
+          usersData = response.data
+        }
       }
       
-      console.log('Fetched users:', usersData)
+      console.log('Parsed users:', usersData)
+      console.log('User count:', usersData.length)
+      
       setUsers(usersData)
     } catch (err: any) {
       console.error('Failed to load users:', err)
