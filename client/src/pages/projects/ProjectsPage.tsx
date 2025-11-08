@@ -343,7 +343,7 @@ export function ProjectsPage() {
                         </SelectTrigger>
                         <SelectContent>
                           {projectManagers.length === 0 && !managersLoading ? (
-                            <SelectItem value="">No managers available</SelectItem>
+                            <SelectItem value="no-managers" disabled>No managers available</SelectItem>
                           ) : (
                             projectManagers.map((manager) => (
                               <SelectItem key={manager.id} value={manager.id}>
