@@ -11,6 +11,8 @@ import {
   LogOut,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   ShoppingCart,
   Receipt,
   Package,
@@ -19,6 +21,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/contexts/AuthContext"
+import { Button } from "@/components/ui/button"
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", roles: [] }, // All roles
@@ -46,6 +49,7 @@ interface SidebarProps {
 export function Sidebar({ className }: SidebarProps) {
   const currentPath = window.location.pathname
   const [isDocumentsOpen, setIsDocumentsOpen] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(false)
   const { user } = useAuth()
 
   // Filter menu items based on user role
@@ -57,10 +61,22 @@ export function Sidebar({ className }: SidebarProps) {
   })
 
   return (
-    <aside className={cn("flex flex-col h-screen bg-card border-r", className)}>
-      {/* Logo */}
-      <div className="p-6 border-b">
-        <Logo />
+    <aside className={cn(
+      "flex flex-col h-screen bg-card border-r transition-all duration-300",
+      isCollapsed ? "w-16" : "w-64",
+      className
+    )}>
+      {/* Logo & Toggle */}
+      <div className="p-4 border-b flex items-center justify-between">
+        {!isCollapsed && <Logo />}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="ml-auto"
+        >
+          {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+        </Button>
       </div>
 
       {/* Navigation */}
@@ -75,29 +91,33 @@ export function Sidebar({ className }: SidebarProps) {
                 "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                 isActive
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                isCollapsed && "justify-center"
               )}
+              title={isCollapsed ? item.label : undefined}
             >
-              <item.icon className="h-5 w-5" />
-              {item.label}
+              <item.icon className="h-5 w-5 flex-shrink-0" />
+              {!isCollapsed && item.label}
             </a>
           )
         })}
 
         {/* Documents Dropdown */}
         <div>
-          <button
-            onClick={() => setIsDocumentsOpen(!isDocumentsOpen)}
-            className="w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <FileText className="h-5 w-5" />
-              Documents
-            </div>
-            {isDocumentsOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </button>
+          {!isCollapsed && (
+            <button
+              onClick={() => setIsDocumentsOpen(!isDocumentsOpen)}
+              className="w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <FileText className="h-5 w-5" />
+                Documents
+              </div>
+              {isDocumentsOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+          )}
           
-          {isDocumentsOpen && (
+          {!isCollapsed && isDocumentsOpen && (
             <div className="mt-1 ml-4 space-y-1">
               {documentMenuItems.map((item) => {
                 const isActive = currentPath === item.href
@@ -119,6 +139,25 @@ export function Sidebar({ className }: SidebarProps) {
               })}
             </div>
           )}
+          
+          {isCollapsed && documentMenuItems.map((item) => {
+            const isActive = currentPath === item.href
+            return (
+              <a
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center justify-center px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                )}
+                title={item.label}
+              >
+                <item.icon className="h-4 w-4" />
+              </a>
+            )
+          })}
         </div>
       </nav>
 
@@ -126,17 +165,25 @@ export function Sidebar({ className }: SidebarProps) {
       <div className="p-4 border-t space-y-1">
         <a
           href="/settings"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+          className={cn(
+            "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors",
+            isCollapsed && "justify-center"
+          )}
+          title={isCollapsed ? "Settings" : undefined}
         >
-          <Settings className="h-5 w-5" />
-          Settings
+          <Settings className="h-5 w-5 flex-shrink-0" />
+          {!isCollapsed && "Settings"}
         </a>
         <button
           onClick={() => console.log("Logout")}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+          className={cn(
+            "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors",
+            isCollapsed && "justify-center"
+          )}
+          title={isCollapsed ? "Logout" : undefined}
         >
-          <LogOut className="h-5 w-5" />
-          Logout
+          <LogOut className="h-5 w-5 flex-shrink-0" />
+          {!isCollapsed && "Logout"}
         </button>
       </div>
     </aside>

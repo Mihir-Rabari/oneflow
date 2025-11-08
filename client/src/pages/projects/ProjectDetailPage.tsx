@@ -16,6 +16,7 @@ import {
   ArrowLeft, 
   Edit, 
   Users, 
+  User,
   DollarSign, 
   Calendar, 
   Loader2,
@@ -70,7 +71,9 @@ export function ProjectDetailPage() {
   const [tasksLoading, setTasksLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [createLoading, setCreateLoading] = useState(false)
+  const [updateLoading, setUpdateLoading] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [dueDate, setDueDate] = useState<Date | undefined>()
   const [taskFormData, setTaskFormData] = useState<TaskFormData>({
@@ -79,6 +82,13 @@ export function ProjectDetailPage() {
     priority: TaskPriority.MEDIUM,
     assignedToId: "",
     estimatedHours: "",
+  })
+  const [editFormData, setEditFormData] = useState<any>({
+    name: "",
+    description: "",
+    status: "",
+    clientName: "",
+    budget: "",
   })
 
   useEffect(() => {
@@ -184,6 +194,59 @@ export function ProjectDetailPage() {
     }
   }
 
+  const handleUpdateStatus = async (newStatus: string) => {
+    setUpdateLoading(true)
+    try {
+      const response = await projectsApi.update(projectId!, { status: newStatus })
+      if (response.error) {
+        throw new Error(response.error)
+      }
+      fetchProject()
+    } catch (err: any) {
+      console.error('Failed to update status:', err)
+    } finally {
+      setUpdateLoading(false)
+    }
+  }
+
+  const handleEditProject = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setFormError(null)
+    setUpdateLoading(true)
+
+    try {
+      const payload: any = {}
+      if (editFormData.name) payload.name = editFormData.name
+      if (editFormData.description) payload.description = editFormData.description
+      if (editFormData.status) payload.status = editFormData.status
+      if (editFormData.clientName) payload.clientName = editFormData.clientName
+      if (editFormData.budget) payload.budget = Number(editFormData.budget)
+
+      const response = await projectsApi.update(projectId!, payload)
+      if (response.error) {
+        throw new Error(response.error)
+      }
+
+      setIsEditDialogOpen(false)
+      fetchProject()
+    } catch (err: any) {
+      setFormError(err.message || 'Failed to update project')
+    } finally {
+      setUpdateLoading(false)
+    }
+  }
+
+  const openEditDialog = () => {
+    setEditFormData({
+      name: project.name || "",
+      description: project.description || "",
+      status: project.status || "",
+      clientName: project.clientName || "",
+      budget: project.budget?.toString() || "",
+    })
+    setIsEditDialogOpen(true)
+  }
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -227,7 +290,24 @@ export function ProjectDetailPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" icon={<Edit className="h-4 w-4" />}>
+            <Select
+              value={project.status}
+              onValueChange={handleUpdateStatus}
+              disabled={updateLoading}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Change status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="PLANNED">Planned</SelectItem>
+                <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                <SelectItem value="ON_HOLD">On Hold</SelectItem>
+                <SelectItem value="COMPLETED">Completed</SelectItem>
+                <SelectItem value="CANCELLED">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="outline" onClick={openEditDialog}>
+              <Edit className="h-4 w-4 mr-2" />
               Edit
             </Button>
           </div>
@@ -278,6 +358,94 @@ export function ProjectDetailPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Edit Project Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent>
+            <form onSubmit={handleEditProject} className="space-y-4">
+              <DialogHeader>
+                <DialogTitle>Edit Project</DialogTitle>
+                <DialogDescription>Update project information</DialogDescription>
+              </DialogHeader>
+
+              {formError && (
+                <div className="rounded-lg border border-destructive/50 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                  {formError}
+                </div>
+              )}
+
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">Project Name</Label>
+                  <Input
+                    id="edit-name"
+                    value={editFormData.name}
+                    onChange={(e) => setEditFormData((prev: any) => ({ ...prev, name: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-description">Description</Label>
+                  <Textarea
+                    id="edit-description"
+                    value={editFormData.description}
+                    onChange={(e) => setEditFormData((prev: any) => ({ ...prev, description: e.target.value }))}
+                    rows={3}
+                  />
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>Status</Label>
+                    <Select
+                      value={editFormData.status}
+                      onValueChange={(value) => setEditFormData((prev: any) => ({ ...prev, status: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="PLANNED">Planned</SelectItem>
+                        <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                        <SelectItem value="ON_HOLD">On Hold</SelectItem>
+                        <SelectItem value="COMPLETED">Completed</SelectItem>
+                        <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-budget">Budget</Label>
+                    <Input
+                      id="edit-budget"
+                      type="number"
+                      value={editFormData.budget}
+                      onChange={(e) => setEditFormData((prev: any) => ({ ...prev, budget: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-client">Client Name</Label>
+                  <Input
+                    id="edit-client"
+                    value={editFormData.clientName}
+                    onChange={(e) => setEditFormData((prev: any) => ({ ...prev, clientName: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <DialogFooter className="gap-2">
+                <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)} disabled={updateLoading}>
+                  Cancel
+                </Button>
+                <Button type="submit" loading={updateLoading}>
+                  Update Project
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
 
         {/* Tabs */}
         <Tabs defaultValue="tasks" className="space-y-4">
@@ -598,31 +766,91 @@ export function ProjectDetailPage() {
 
           {/* Settings Tab */}
           <TabsContent value="settings">
-            <Card>
-              <CardHeader>
-                <CardTitle>Project Settings</CardTitle>
-                <CardDescription>Configure project settings and team members</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium">Project Details</h3>
-                  <div className="grid gap-4">
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Project Details</CardTitle>
+                  <CardDescription>Complete information about this project</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid gap-6 md:grid-cols-2">
                     <div className="grid gap-2">
-                      <Label>Project Manager</Label>
-                      <p className="text-sm text-muted-foreground">{project.projectManager?.name || 'Not assigned'}</p>
+                      <Label className="text-muted-foreground">Project Name</Label>
+                      <p className="text-sm font-medium">{project.name}</p>
                     </div>
                     <div className="grid gap-2">
-                      <Label>Client</Label>
-                      <p className="text-sm text-muted-foreground">{project.clientName || 'No client'}</p>
+                      <Label className="text-muted-foreground">Status</Label>
+                      <p className="text-sm font-medium capitalize">{project.status?.replace(/_/g, ' ').toLowerCase()}</p>
                     </div>
                     <div className="grid gap-2">
-                      <Label>Type</Label>
-                      <p className="text-sm text-muted-foreground">{project.type?.replace(/_/g, ' ') || 'N/A'}</p>
+                      <Label className="text-muted-foreground">Project Manager</Label>
+                      <p className="text-sm font-medium">{project.projectManager?.name || 'Not assigned'}</p>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label className="text-muted-foreground">Client Name</Label>
+                      <p className="text-sm font-medium">{project.clientName || 'No client'}</p>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label className="text-muted-foreground">Client Email</Label>
+                      <p className="text-sm font-medium">{project.clientEmail || 'N/A'}</p>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label className="text-muted-foreground">Project Type</Label>
+                      <p className="text-sm font-medium capitalize">{project.type?.replace(/_/g, ' ').toLowerCase() || 'N/A'}</p>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label className="text-muted-foreground">Budget</Label>
+                      <p className="text-sm font-medium">₹{project.budget?.toLocaleString() || 'N/A'}</p>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label className="text-muted-foreground">Start Date</Label>
+                      <p className="text-sm font-medium">{project.startDate ? new Date(project.startDate).toLocaleDateString() : 'N/A'}</p>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label className="text-muted-foreground">Deadline</Label>
+                      <p className="text-sm font-medium">{project.deadline ? new Date(project.deadline).toLocaleDateString() : 'N/A'}</p>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label className="text-muted-foreground">Created At</Label>
+                      <p className="text-sm font-medium">{new Date(project.createdAt).toLocaleDateString()}</p>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                  <div className="grid gap-2">
+                    <Label className="text-muted-foreground">Description</Label>
+                    <p className="text-sm font-medium">{project.description || 'No description'}</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Team Members</CardTitle>
+                  <CardDescription>People working on this project</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {project.members && project.members.length > 0 ? (
+                    <div className="space-y-3">
+                      {project.members.map((member: any) => (
+                        <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                              <User className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">{member.user?.name || 'Unknown'}</p>
+                              <p className="text-xs text-muted-foreground">{member.user?.email}</p>
+                            </div>
+                          </div>
+                          <Badge variant="secondary">{member.role || 'Member'}</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">No team members yet</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
