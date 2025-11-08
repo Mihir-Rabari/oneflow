@@ -14,7 +14,8 @@ import {
   ShoppingCart,
   Receipt,
   Package,
-  DollarSign
+  DollarSign,
+  UserCog
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/contexts/AuthContext"
@@ -26,7 +27,7 @@ const menuItems = [
   { icon: FileText, label: "Billing", href: "/billing", roles: ["ADMIN", "PROJECT_MANAGER"] },
   { icon: BarChart3, label: "Analytics", href: "/analytics", roles: ["ADMIN", "PROJECT_MANAGER"] },
   { icon: Users, label: "Team", href: "/team", roles: ["ADMIN", "PROJECT_MANAGER"] },
-  { icon: Users, label: "User Management", href: "/users", roles: ["ADMIN"] }, // Admin only
+  { icon: UserCog, label: "User Management", href: "/users", roles: ["ADMIN"] }, // Admin only
 ]
 
 const documentMenuItems = [
