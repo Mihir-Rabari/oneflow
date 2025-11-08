@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'oneflow-server',
-      script: './server/dist/server.js',
+      script: './dist/index.js',
       cwd: './server',
       instances: 1,
       exec_mode: 'cluster',
