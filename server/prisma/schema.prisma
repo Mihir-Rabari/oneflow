@@ -1,0 +1,431 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  PROJECT_MANAGER
+  TEAM_MEMBER
+  SALES_FINANCE
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+  SUSPENDED
+}
+
+enum ProjectStatus {
+  PLANNED
+  IN_PROGRESS
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+enum ProjectType {
+  FIXED_PRICE
+  TIME_AND_MATERIAL
+  RETAINER
+}
+
+enum TaskStatus {
+  NEW
+  IN_PROGRESS
+  BLOCKED
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum DocumentStatus {
+  DRAFT
+  SENT
+  APPROVED
+  PAID
+  CANCELLED
+  OVERDUE
+}
+
+enum ExpenseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REIMBURSED
+}
+
+model User {
+  id            String      @id @default(uuid())
+  email         String      @unique
+  password      String
+  name          String
+  role          UserRole    @default(TEAM_MEMBER)
+  status        UserStatus  @default(PENDING)
+  avatar        String?
+  phone         String?
+  hourlyRate    Float?
+  department    String?
+  emailVerified Boolean     @default(false)
+  lastLogin     DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  // Relations
+  managedProjects      Project[]             @relation("ProjectManager")
+  projectMemberships   ProjectMember[]
+  createdTasks         Task[]                @relation("TaskCreator")
+  assignedTasks        Task[]                @relation("TaskAssignee")
+  taskComments         TaskComment[]
+  taskAttachments      TaskAttachment[]
+  timesheets           Timesheet[]
+  expenses             Expense[]             @relation("ExpenseUser")
+  approvedExpenses     Expense[]             @relation("ExpenseApprover")
+  createdSalesOrders   SalesOrder[]
+  createdPurchaseOrders PurchaseOrder[]
+  createdInvoices      CustomerInvoice[]
+  createdVendorBills   VendorBill[]
+  otps                 OTP[]
+  auditLogs            AuditLog[]
+
+  @@index([email])
+  @@index([role])
+  @@index([status])
+  @@map("users")
+}
+
+model OTP {
+  id        String   @id @default(uuid())
+  userId    String
+  email     String
+  otp       String
+  type      String   // 'email_verification', 'password_reset', 'login'
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([otp])
+  @@index([expiresAt])
+  @@map("otps")
+}
+
+model Project {
+  id                String        @id @default(uuid())
+  name              String
+  description       String?       @db.Text
+  status            ProjectStatus @default(PLANNED)
+  type              ProjectType
+  budget            Float?
+  spent             Float         @default(0)
+  revenue           Float         @default(0)
+  profit            Float         @default(0)
+  startDate         DateTime
+  endDate           DateTime?
+  deadline          DateTime?
+  progress          Int           @default(0)
+  projectManagerId  String
+  clientName        String?
+  clientEmail       String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  projectManager   User              @relation("ProjectManager", fields: [projectManagerId], references: [id])
+  members          ProjectMember[]
+  tasks            Task[]
+  timesheets       Timesheet[]
+  salesOrders      SalesOrder[]
+  purchaseOrders   PurchaseOrder[]
+  customerInvoices CustomerInvoice[]
+  vendorBills      VendorBill[]
+  expenses         Expense[]
+
+  @@index([projectManagerId])
+  @@index([status])
+  @@index([startDate])
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        String   @id @default(uuid())
+  projectId String
+  userId    String
+  role      String?  // Optional: 'Developer', 'Designer', etc.
+  joinedAt  DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
+  @@map("project_members")
+}
+
+model Task {
+  id             String       @id @default(uuid())
+  title          String
+  description    String?      @db.Text
+  status         TaskStatus   @default(NEW)
+  priority       TaskPriority @default(MEDIUM)
+  projectId      String
+  assignedToId   String?
+  createdById    String
+  estimatedHours Float?
+  actualHours    Float        @default(0)
+  dueDate        DateTime?
+  startDate      DateTime?
+  completedDate  DateTime?
+  order          Int          @default(0)
+  parentTaskId   String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  // Relations
+  project     Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignedTo  User?            @relation("TaskAssignee", fields: [assignedToId], references: [id])
+  createdBy   User             @relation("TaskCreator", fields: [createdById], references: [id])
+  parentTask  Task?            @relation("SubTasks", fields: [parentTaskId], references: [id])
+  subTasks    Task[]           @relation("SubTasks")
+  comments    TaskComment[]
+  attachments TaskAttachment[]
+  timesheets  Timesheet[]
+
+  @@index([projectId])
+  @@index([assignedToId])
+  @@index([createdById])
+  @@index([status])
+  @@index([dueDate])
+  @@map("tasks")
+}
+
+model TaskComment {
+  id        String   @id @default(uuid())
+  taskId    String
+  userId    String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([userId])
+  @@map("task_comments")
+}
+
+model TaskAttachment {
+  id        String   @id @default(uuid())
+  taskId    String
+  userId    String
+  fileName  String
+  fileUrl   String
+  fileSize  Int
+  mimeType  String
+  createdAt DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([userId])
+  @@map("task_attachments")
+}
+
+model Timesheet {
+  id          String   @id @default(uuid())
+  taskId      String
+  userId      String
+  projectId   String
+  hours       Float
+  description String?  @db.Text
+  isBillable  Boolean  @default(true)
+  date        DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  task    Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([userId])
+  @@index([projectId])
+  @@index([date])
+  @@map("timesheets")
+}
+
+model SalesOrder {
+  id           String         @id @default(uuid())
+  orderNumber  String         @unique
+  projectId    String
+  customerName String
+  customerEmail String?
+  amount       Float
+  description  String?        @db.Text
+  status       DocumentStatus @default(DRAFT)
+  orderDate    DateTime
+  validUntil   DateTime?
+  createdById  String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  project         Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy       User              @relation(fields: [createdById], references: [id])
+  customerInvoices CustomerInvoice[]
+
+  @@index([projectId])
+  @@index([orderNumber])
+  @@index([status])
+  @@map("sales_orders")
+}
+
+model PurchaseOrder {
+  id               String         @id @default(uuid())
+  orderNumber      String         @unique
+  projectId        String
+  vendorName       String
+  vendorEmail      String?
+  amount           Float
+  description      String?        @db.Text
+  status           DocumentStatus @default(DRAFT)
+  orderDate        DateTime
+  expectedDelivery DateTime?
+  createdById      String
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy   User         @relation(fields: [createdById], references: [id])
+  vendorBills VendorBill[]
+
+  @@index([projectId])
+  @@index([orderNumber])
+  @@index([status])
+  @@map("purchase_orders")
+}
+
+model CustomerInvoice {
+  id            String         @id @default(uuid())
+  invoiceNumber String         @unique
+  projectId     String
+  salesOrderId  String?
+  customerName  String
+  customerEmail String?
+  amount        Float
+  tax           Float?
+  totalAmount   Float
+  description   String?        @db.Text
+  status        DocumentStatus @default(DRAFT)
+  invoiceDate   DateTime
+  dueDate       DateTime?
+  paidDate      DateTime?
+  createdById   String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  project    Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  salesOrder SalesOrder? @relation(fields: [salesOrderId], references: [id])
+  createdBy  User        @relation(fields: [createdById], references: [id])
+
+  @@index([projectId])
+  @@index([salesOrderId])
+  @@index([invoiceNumber])
+  @@index([status])
+  @@map("customer_invoices")
+}
+
+model VendorBill {
+  id              String         @id @default(uuid())
+  billNumber      String         @unique
+  projectId       String
+  purchaseOrderId String?
+  vendorName      String
+  vendorEmail     String?
+  amount          Float
+  tax             Float?
+  totalAmount     Float
+  description     String?        @db.Text
+  status          DocumentStatus @default(DRAFT)
+  billDate        DateTime
+  dueDate         DateTime?
+  paidDate        DateTime?
+  createdById     String
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  project       Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  purchaseOrder PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
+  createdBy     User           @relation(fields: [createdById], references: [id])
+
+  @@index([projectId])
+  @@index([purchaseOrderId])
+  @@index([billNumber])
+  @@index([status])
+  @@map("vendor_bills")
+}
+
+model Expense {
+  id            String        @id @default(uuid())
+  projectId     String
+  userId        String
+  amount        Float
+  description   String        @db.Text
+  category      String
+  isBillable    Boolean       @default(false)
+  status        ExpenseStatus @default(PENDING)
+  expenseDate   DateTime
+  receiptUrl    String?
+  approvedById  String?
+  approvedAt    DateTime?
+  reimbursedAt  DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user       User    @relation("ExpenseUser", fields: [userId], references: [id], onDelete: Cascade)
+  approvedBy User?   @relation("ExpenseApprover", fields: [approvedById], references: [id])
+
+  @@index([projectId])
+  @@index([userId])
+  @@index([status])
+  @@index([expenseDate])
+  @@map("expenses")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String
+  changes   String?  @db.Text
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entity])
+  @@index([entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
