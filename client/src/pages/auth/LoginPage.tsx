@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext"
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
