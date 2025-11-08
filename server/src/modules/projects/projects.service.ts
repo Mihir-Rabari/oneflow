@@ -457,6 +457,48 @@ export class ProjectsService {
     return { message: 'Team member removed successfully' };
   }
 
+  async recalculateAllProjectProgress() {
+    const projects = await prisma.project.findMany({
+      select: { id: true },
+    });
+
+    for (const project of projects) {
+      await this.updateProjectProgress(project.id);
+    }
+
+    logger.info(`Recalculated progress for ${projects.length} projects`);
+    return { message: `Updated progress for ${projects.length} projects` };
+  }
+
+  async updateProjectProgress(projectId: string) {
+    // Get all tasks for the project
+    const tasks = await prisma.task.findMany({
+      where: { projectId },
+      select: { status: true },
+    });
+
+    if (tasks.length === 0) {
+      // No tasks, set progress to 0
+      await prisma.project.update({
+        where: { id: projectId },
+        data: { progress: 0 },
+      });
+      return;
+    }
+
+    // Calculate progress based on task completion
+    const completedTasks = tasks.filter(t => t.status === 'DONE').length;
+    const progress = Math.round((completedTasks / tasks.length) * 100);
+
+    // Update project progress
+    await prisma.project.update({
+      where: { id: projectId },
+      data: { progress },
+    });
+
+    logger.info(`Project ${projectId} progress updated to ${progress}% (${completedTasks}/${tasks.length} tasks done)`);
+  }
+
   async getProjectStats(projectId: string) {
     // Try cache first (5 minutes for stats as they change frequently)
     const cacheKey = `project:${projectId}:stats`;

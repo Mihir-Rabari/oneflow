@@ -1,6 +1,7 @@
 import { prisma } from '@/config/database';
 import { cacheService } from '@/config/redis';
 import { emailService } from '@/services/emailService';
+import { projectsService } from '@/modules/projects/projects.service';
 import { TaskStatus, TaskPriority } from '@oneflow/shared';
 import { BadRequestError, NotFoundError, ForbiddenError } from '@/utils/errors';
 import { logger } from '@/utils/logger';
@@ -153,7 +154,7 @@ export class TasksService {
     await cacheService.del(`project:${data.projectId}:stats`);
 
     // Update project progress
-    await this.updateProjectProgress(data.projectId);
+    await projectsService.updateProjectProgress(data.projectId);
 
     // Send email notification if assigned
     if (data.assignedToId && task.assignedTo) {
@@ -224,36 +225,12 @@ export class TasksService {
 
     // Update project progress if status changed
     if (data.status) {
-      await this.updateProjectProgress(task.projectId);
+      await projectsService.updateProjectProgress(task.projectId);
     }
 
     logger.info(`Task ${taskId} updated`);
 
     return updatedTask;
-  }
-
-  private async updateProjectProgress(projectId: string) {
-    // Get all tasks for the project
-    const tasks = await prisma.task.findMany({
-      where: { projectId },
-      select: { status: true },
-    });
-
-    if (tasks.length === 0) {
-      return;
-    }
-
-    // Calculate progress based on task completion
-    const completedTasks = tasks.filter(t => t.status === TaskStatus.DONE).length;
-    const progress = Math.round((completedTasks / tasks.length) * 100);
-
-    // Update project progress
-    await prisma.project.update({
-      where: { id: projectId },
-      data: { progress },
-    });
-
-    logger.info(`Project ${projectId} progress updated to ${progress}%`);
   }
 
   async deleteTask(taskId: string, userId: string, userRole: string) {
@@ -281,7 +258,7 @@ export class TasksService {
     await cacheService.del(`project:${projectId}:stats`);
 
     // Update project progress
-    await this.updateProjectProgress(projectId);
+    await projectsService.updateProjectProgress(projectId);
 
     logger.info(`Task ${taskId} deleted`);
 

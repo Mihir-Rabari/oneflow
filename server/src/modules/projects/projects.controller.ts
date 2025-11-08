@@ -110,6 +110,15 @@ export class ProjectsController {
       data: { stats },
     });
   });
+
+  recalculateProgress = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const result = await projectsService.recalculateAllProjectProgress();
+
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  });
 }
 
 export const projectsController = new ProjectsController();

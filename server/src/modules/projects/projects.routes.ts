@@ -20,6 +20,13 @@ router.use(authenticate);
 // Get all projects (filtered by access)
 router.get('/', validate(getProjectsQuerySchema), projectsController.getAllProjects);
 
+// Recalculate all project progress (Admin/PM only) - must be before :projectId routes
+router.post(
+  '/recalculate-progress',
+  isAdminOrPM,
+  projectsController.recalculateProgress
+);
+
 // Get project by ID
 router.get(
   '/:projectId',
