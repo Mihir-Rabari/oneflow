@@ -59,9 +59,19 @@ class EmailService {
     }
   }
 
-  async sendOTPEmail(to: string, name: string, otp: string): Promise<void> {
+  async sendOTP(email: string, otp: string, name: string): Promise<void> {
+    // In development, skip actual email sending and just log the OTP
+    if (env.NODE_ENV === 'development') {
+      logger.info(` [DEV MODE] OTP for ${email}: ${otp}`);
+      logger.info(`Copy this OTP to verify your email: ${otp}`);
+      return;
+    }
+    
+    const subject = 'Verify Your Email - OneFlow';
     const html = await this.loadTemplate('otp', { name, otp });
-    await this.sendEmail(to, 'Verify Your Email - OneFlow', html);
+    
+    await this.sendEmail(email, subject, html);
+    logger.info(`OTP email sent to ${email}`);
   }
 
   async sendWelcomeEmail(to: string, name: string): Promise<void> {
