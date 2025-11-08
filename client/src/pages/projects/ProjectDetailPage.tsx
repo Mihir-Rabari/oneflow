@@ -1119,11 +1119,11 @@ export function ProjectDetailPage() {
                     <div className="flex items-center gap-2 border-b pb-2">
                       <div className="w-48 font-semibold text-sm">Task</div>
                       <div className="flex-1 flex justify-between text-xs text-muted-foreground px-4">
+                        <span>-15d</span>
+                        <span>-7d</span>
                         <span>Today</span>
-                        <span>+7 days</span>
-                        <span>+14 days</span>
-                        <span>+21 days</span>
-                        <span>+30 days</span>
+                        <span>+7d</span>
+                        <span>+15d</span>
                       </div>
                     </div>
 
@@ -1131,16 +1131,38 @@ export function ProjectDetailPage() {
                     {Object.entries(tasks).flatMap(([status, taskList]: [string, any]) => 
                       (taskList || []).map((task: any) => {
                         const today = new Date()
-                        const dueDate = task.dueDate ? new Date(task.dueDate) : null
-                        const startDate = task.startDate ? new Date(task.startDate) : today
+                        today.setHours(0, 0, 0, 0)
                         
-                        // Calculate position and width
-                        const daysDiff = dueDate ? Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : 30
-                        const daysFromStart = Math.ceil((startDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+                        // Use startDate if available, otherwise use createdAt
+                        const taskStart = task.startDate 
+                          ? new Date(task.startDate) 
+                          : (task.createdAt ? new Date(task.createdAt) : today)
+                        taskStart.setHours(0, 0, 0, 0)
                         
-                        // Position as percentage of 30 days view
-                        const leftPercent = Math.max(0, Math.min(100, (daysFromStart / 30) * 100))
-                        const widthPercent = Math.max(5, Math.min(100 - leftPercent, (Math.abs(daysDiff - daysFromStart) / 30) * 100))
+                        // Use dueDate if available, otherwise estimate from hours
+                        let taskEnd: Date
+                        if (task.dueDate) {
+                          taskEnd = new Date(task.dueDate)
+                        } else if (task.estimatedHours) {
+                          // Estimate: 8 hours = 1 day, so duration = estimatedHours / 8
+                          const estimatedDays = Math.ceil(task.estimatedHours / 8)
+                          taskEnd = new Date(taskStart)
+                          taskEnd.setDate(taskEnd.getDate() + estimatedDays)
+                        } else {
+                          // Default to 3 days if no information
+                          taskEnd = new Date(taskStart)
+                          taskEnd.setDate(taskEnd.getDate() + 3)
+                        }
+                        taskEnd.setHours(0, 0, 0, 0)
+                        
+                        // Calculate days from today
+                        const startDaysFromToday = Math.ceil((taskStart.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+                        const endDaysFromToday = Math.ceil((taskEnd.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+                        const duration = endDaysFromToday - startDaysFromToday
+                        
+                        // Position as percentage of 30 days view (can show past tasks)
+                        const leftPercent = Math.max(0, Math.min(100, ((startDaysFromToday + 15) / 30) * 100))
+                        const widthPercent = Math.max(3, Math.min(100 - leftPercent, (duration / 30) * 100))
                         
                         // Status color
                         const statusColors: { [key: string]: string } = {
@@ -1182,17 +1204,17 @@ export function ProjectDetailPage() {
                                   minWidth: '60px'
                                 }}
                                 onClick={() => navigate(`/tasks/${task.id}`)}
-                                title={`${task.title}\nDue: ${dueDate ? dueDate.toLocaleDateString() : 'No due date'}\nStatus: ${status}`}
+                                title={`${task.title}\nStart: ${taskStart.toLocaleDateString()}\nDue: ${taskEnd.toLocaleDateString()}\nStatus: ${status}`}
                               >
                                 <span className="truncate">{task.estimatedHours ? `${task.estimatedHours}h` : ''}</span>
                               </div>
 
                               {/* Due date indicator */}
-                              {dueDate && (
+                              {task.dueDate && (
                                 <div 
                                   className="absolute top-0 h-8 w-0.5 bg-destructive"
-                                  style={{ left: `${Math.min(100, (daysDiff / 30) * 100)}%` }}
-                                  title={`Due: ${dueDate.toLocaleDateString()}`}
+                                  style={{ left: `${Math.min(100, ((endDaysFromToday + 15) / 30) * 100)}%` }}
+                                  title={`Due: ${taskEnd.toLocaleDateString()}`}
                                 />
                               )}
                             </div>
