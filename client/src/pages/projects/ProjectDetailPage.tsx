@@ -1117,7 +1117,7 @@ export function ProjectDetailPage() {
                   <div className="space-y-2">
                     {/* Timeline Header */}
                     <div className="flex items-center gap-2 border-b pb-2">
-                      <div className="w-48 font-semibold text-sm">Task</div>
+                      <div className="w-56 font-semibold text-sm">Task</div>
                       <div className="flex-1 flex justify-between text-xs text-muted-foreground px-4">
                         <span>-15d</span>
                         <span>-7d</span>
@@ -1175,11 +1175,13 @@ export function ProjectDetailPage() {
                         return (
                           <div key={task.id} className="flex items-center gap-2 py-2 hover:bg-accent/50 rounded group">
                             {/* Task Info */}
-                            <div className="w-48 flex items-center gap-2">
+                            <div className="w-56 flex items-center gap-2">
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">{task.title}</p>
+                                <p className="text-sm font-medium truncate" title={task.title}>
+                                  {task.title}
+                                </p>
                                 <div className="flex items-center gap-1 mt-0.5">
-                                  <Badge variant={priorityColors[task.priority as keyof typeof priorityColors]} className="text-xs h-4">
+                                  <Badge variant={priorityColors[task.priority as keyof typeof priorityColors]} className="text-xs h-4 px-1.5">
                                     {task.priority?.toLowerCase()}
                                   </Badge>
                                 </div>
