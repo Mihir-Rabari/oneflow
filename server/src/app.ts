@@ -13,6 +13,8 @@ import { metricsHandler, httpRequestDuration, httpRequestTotal } from './metrics
 import authRoutes from './modules/auth/auth.routes';
 import usersRoutes from './modules/users/users.routes';
 import projectsRoutes from './modules/projects/projects.routes';
+import tasksRoutes from './modules/tasks/tasks.routes';
+import timesheetsRoutes from './modules/timesheets/timesheets.routes';
 
 const app: Application = express();
 
@@ -75,7 +77,9 @@ app.get('/metrics', metricsHandler);
 app.use('/auth', authRoutes);
 app.use('/users', usersRoutes);
 app.use('/projects', projectsRoutes);
-// TODO: Add other module routes (tasks, timesheets, billing, analytics)
+app.use('/tasks', tasksRoutes);
+app.use('/timesheets', timesheetsRoutes);
+// TODO: Add billing, analytics routes later
 
 // 404 handler
 app.use(notFoundHandler);
