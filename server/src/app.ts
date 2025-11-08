@@ -76,13 +76,13 @@ app.get('/health', (req, res) => {
 app.get('/metrics', metricsHandler);
 
 // API routes
-app.use('/auth', authRoutes);
-app.use('/users', usersRoutes);
-app.use('/projects', projectsRoutes);
-app.use('/tasks', tasksRoutes);
-app.use('/timesheets', timesheetsRoutes);
-app.use('/billing', billingRoutes);
-app.use('/analytics', analyticsRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/users', usersRoutes);
+app.use('/api/projects', projectsRoutes);
+app.use('/api/tasks', tasksRoutes);
+app.use('/api/timesheets', timesheetsRoutes);
+app.use('/api/billing', billingRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
