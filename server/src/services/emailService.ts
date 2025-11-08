@@ -80,6 +80,13 @@ class EmailService {
   }
 
   async sendPasswordResetEmail(to: string, name: string, resetLink: string): Promise<void> {
+    // In development, skip actual email sending and just log the reset link
+    if (env.NODE_ENV === 'development') {
+      logger.info(`📧 [DEV MODE] Password reset link for ${to}:`);
+      logger.info(`🔗 ${resetLink}`);
+      return;
+    }
+    
     const html = await this.loadTemplate('password-reset', { name, resetLink });
     await this.sendEmail(to, 'Reset Your Password - OneFlow', html);
   }
