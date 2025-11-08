@@ -1,9 +1,11 @@
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/config/database';
 import { emailService } from '@/services/emailService';
+import { cacheService } from '@/config/redis';
 import { UserRole, UserStatus } from '@oneflow/shared';
 import { BadRequestError, NotFoundError, ForbiddenError } from '@/utils/errors';
 import { generateOTP } from '@oneflow/shared';
+import { logger } from '@/utils/logger';
 
 export class UsersService {
   async getAllUsers(page = 1, limit = 20, role?: UserRole, status?: UserStatus, search?: string) {
@@ -57,6 +59,16 @@ export class UsersService {
   }
 
   async getUserById(userId: string) {
+    // Try cache first
+    const cacheKey = `user:${userId}`;
+    const cached = await cacheService.get(cacheKey);
+    
+    if (cached) {
+      logger.debug(`User ${userId} retrieved from cache`);
+      return cached;
+    }
+
+    // Fetch from database
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -87,6 +99,10 @@ export class UsersService {
     if (!user) {
       throw new NotFoundError('User not found');
     }
+
+    // Cache for 1 hour
+    await cacheService.set(cacheKey, user, 3600);
+    logger.debug(`User ${userId} cached for 1 hour`);
 
     return user;
   }
@@ -182,6 +198,10 @@ export class UsersService {
       },
     });
 
+    // Update cache
+    await cacheService.set(`user:${userId}`, updatedUser, 3600);
+    logger.debug(`User ${userId} cache updated`);
+
     return updatedUser;
   }
 
@@ -209,6 +229,10 @@ export class UsersService {
         updatedAt: true,
       },
     });
+
+    // Update cache
+    await cacheService.set(`user:${userId}`, user, 3600);
+    logger.debug(`User ${userId} profile cache updated`);
 
     return user;
   }
@@ -272,6 +296,10 @@ export class UsersService {
       where: { id: userId },
       data: { status: UserStatus.INACTIVE },
     });
+
+    // Invalidate cache
+    await cacheService.del(`user:${userId}`);
+    logger.info(`User ${userId} deactivated and cache invalidated`);
 
     return { message: 'User deactivated successfully' };
   }
