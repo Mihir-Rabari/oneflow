@@ -79,15 +79,36 @@ export function ProjectsPage() {
     
     try {
       const response = (await projectsApi.getAll()) as any
+      console.log('Raw projects API response:', response)
       
       if (response.error) {
         throw new Error(response.error)
       }
       
-      // Backend returns { success: true, data: [...projects] }
-      const projectsData = response.data?.data || response.data || []
-      setProjects(Array.isArray(projectsData) ? projectsData : [])
+      // Backend returns: { success: true, data: { projects: [...], pagination: {...} } }
+      let projectsData: any[] = []
+      
+      if (response.data) {
+        // Check for response.data.data.projects (nested)
+        if (response.data.data?.projects && Array.isArray(response.data.data.projects)) {
+          projectsData = response.data.data.projects
+        }
+        // Check for response.data.projects (direct)
+        else if (response.data.projects && Array.isArray(response.data.projects)) {
+          projectsData = response.data.projects
+        }
+        // Check for response.data (direct array - fallback)
+        else if (Array.isArray(response.data)) {
+          projectsData = response.data
+        }
+      }
+      
+      console.log('Parsed projects:', projectsData)
+      console.log('Projects count:', projectsData.length)
+      
+      setProjects(projectsData)
     } catch (err: any) {
+      console.error('Failed to load projects:', err)
       setError(err.message || 'Failed to load projects')
     } finally {
       setLoading(false)
@@ -300,10 +321,11 @@ export function ProjectsPage() {
         throw new Error(response.error)
       }
 
+      alert('Project created successfully! The project manager has been notified via email.')
       setSuccessMessage('Project created successfully')
       setIsDialogOpen(false)
       resetForm()
-      fetchProjects()
+      await fetchProjects()
     } catch (err: any) {
       setFormError(err.message || 'Failed to create project')
     } finally {
