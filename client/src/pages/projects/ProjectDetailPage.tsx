@@ -1209,11 +1209,11 @@ export function ProjectDetailPage() {
                                 <span className="truncate">{task.estimatedHours ? `${task.estimatedHours}h` : ''}</span>
                               </div>
 
-                              {/* Due date indicator */}
+                              {/* Due date indicator - show at end of bar */}
                               {task.dueDate && (
                                 <div 
-                                  className="absolute top-0 h-8 w-0.5 bg-destructive"
-                                  style={{ left: `${Math.min(100, ((endDaysFromToday + 15) / 30) * 100)}%` }}
+                                  className="absolute top-0 h-8 w-0.5 bg-destructive/80"
+                                  style={{ left: `${Math.min(100, leftPercent + widthPercent)}%` }}
                                   title={`Due: ${taskEnd.toLocaleDateString()}`}
                                 />
                               )}
