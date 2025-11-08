@@ -162,39 +162,180 @@ export const timesheetsApi = {
 
 // Billing API
 export const billingApi = {
-  // Sales Orders
-  getSalesOrders: () =>
-    apiRequest('/billing/sales-orders', { method: 'GET' }),
-
-  createSalesOrder: (data: any) =>
-    apiRequest('/billing/sales-orders', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
-
-  // Customer Invoices
   getInvoices: () =>
     apiRequest('/billing/invoices', { method: 'GET' }),
+}
 
-  createInvoice: (data: any) =>
-    apiRequest('/billing/invoices', {
+// Sales Orders API
+export const salesOrdersApi = {
+  getAll: () =>
+    apiRequest('/sales-orders', { method: 'GET' }),
+
+  getById: (id: string) =>
+    apiRequest(`/sales-orders/${id}`, { method: 'GET' }),
+
+  create: (data: any) =>
+    apiRequest('/sales-orders', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
 
-  updateInvoiceStatus: (id: string, status: string) =>
-    apiRequest(`/billing/invoices/${id}/status`, {
+  update: (id: string, data: any) =>
+    apiRequest(`/sales-orders/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id: string) =>
+    apiRequest(`/sales-orders/${id}`, {
+      method: 'DELETE',
+    }),
+}
+
+// Purchase Orders API
+export const purchaseOrdersApi = {
+  getAll: () =>
+    apiRequest('/purchase-orders', { method: 'GET' }),
+
+  getById: (id: string) =>
+    apiRequest(`/purchase-orders/${id}`, { method: 'GET' }),
+
+  create: (data: any) =>
+    apiRequest('/purchase-orders', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  update: (id: string, data: any) =>
+    apiRequest(`/purchase-orders/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id: string) =>
+    apiRequest(`/purchase-orders/${id}`, {
+      method: 'DELETE',
+    }),
+}
+
+// Invoices API
+export const invoicesApi = {
+  getAll: () =>
+    apiRequest('/invoices', { method: 'GET' }),
+
+  getById: (id: string) =>
+    apiRequest(`/invoices/${id}`, { method: 'GET' }),
+
+  create: (data: any) =>
+    apiRequest('/invoices', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  update: (id: string, data: any) =>
+    apiRequest(`/invoices/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id: string) =>
+    apiRequest(`/invoices/${id}`, {
+      method: 'DELETE',
+    }),
+
+  updateStatus: (id: string, status: string) =>
+    apiRequest(`/invoices/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status }),
     }),
+}
 
-  // Purchase Orders
-  getPurchaseOrders: () =>
-    apiRequest('/billing/purchase-orders', { method: 'GET' }),
+// Vendor Bills API
+export const vendorBillsApi = {
+  getAll: () =>
+    apiRequest('/vendor-bills', { method: 'GET' }),
 
-  // Vendor Bills
-  getVendorBills: () =>
-    apiRequest('/billing/vendor-bills', { method: 'GET' }),
+  getById: (id: string) =>
+    apiRequest(`/vendor-bills/${id}`, { method: 'GET' }),
+
+  create: (data: any) =>
+    apiRequest('/vendor-bills', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  update: (id: string, data: any) =>
+    apiRequest(`/vendor-bills/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id: string) =>
+    apiRequest(`/vendor-bills/${id}`, {
+      method: 'DELETE',
+    }),
+}
+
+// Expenses API
+export const expensesApi = {
+  getAll: (params?: { projectId?: string; status?: string }) =>
+    apiRequest(`/expenses?${new URLSearchParams(params as any)}`, { method: 'GET' }),
+
+  getById: (id: string) =>
+    apiRequest(`/expenses/${id}`, { method: 'GET' }),
+
+  create: (data: any) =>
+    apiRequest('/expenses', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  update: (id: string, data: any) =>
+    apiRequest(`/expenses/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id: string) =>
+    apiRequest(`/expenses/${id}`, {
+      method: 'DELETE',
+    }),
+
+  approve: (id: string) =>
+    apiRequest(`/expenses/${id}/approve`, {
+      method: 'POST',
+    }),
+
+  reject: (id: string) =>
+    apiRequest(`/expenses/${id}/reject`, {
+      method: 'POST',
+    }),
+}
+
+// Products API
+export const productsApi = {
+  getAll: () =>
+    apiRequest('/products', { method: 'GET' }),
+
+  getById: (id: string) =>
+    apiRequest(`/products/${id}`, { method: 'GET' }),
+
+  create: (data: any) =>
+    apiRequest('/products', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  update: (id: string, data: any) =>
+    apiRequest(`/products/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id: string) =>
+    apiRequest(`/products/${id}`, {
+      method: 'DELETE',
+    }),
 }
 
 // Analytics API

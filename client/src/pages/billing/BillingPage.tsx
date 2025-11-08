@@ -56,9 +56,17 @@ export function BillingPage() {
     return matchesSearch && matchesStatus
   })
 
-  const totalRevenue = invoices.filter(inv => inv.status === "PAID").reduce((sum, inv) => sum + (inv.totalAmount || 0), 0)
-  const totalPending = invoices.filter(inv => inv.status === "PENDING").reduce((sum, inv) => sum + (inv.totalAmount || 0), 0)
-  const overdueAmount = invoices.filter(inv => inv.status === "Overdue").reduce((sum, inv) => sum + inv.amount, 0)
+  const normalizeStatus = (status?: string) => status?.toUpperCase() || ""
+
+  const totalRevenue = invoices
+    .filter(inv => normalizeStatus(inv.status) === "PAID")
+    .reduce((sum, inv) => sum + (inv.totalAmount || 0), 0)
+  const totalPending = invoices
+    .filter(inv => normalizeStatus(inv.status) === "PENDING")
+    .reduce((sum, inv) => sum + (inv.totalAmount || 0), 0)
+  const overdueAmount = invoices
+    .filter(inv => normalizeStatus(inv.status) === "OVERDUE")
+    .reduce((sum, inv) => sum + (inv.totalAmount || inv.amount || 0), 0)
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -121,8 +129,8 @@ export function BillingPage() {
               <FileText className="h-4 w-4 text-yellow-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(pendingAmount)}</div>
-              <p className="text-xs text-muted-foreground">{invoices.filter(inv => inv.status === "Pending").length} invoices</p>
+              <div className="text-2xl font-bold">{formatCurrency(totalPending)}</div>
+              <p className="text-xs text-muted-foreground">{invoices.filter(inv => normalizeStatus(inv.status) === "PENDING").length} invoices</p>
             </CardContent>
           </Card>
           <Card>
@@ -132,7 +140,7 @@ export function BillingPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{formatCurrency(overdueAmount)}</div>
-              <p className="text-xs text-muted-foreground">{invoices.filter(inv => inv.status === "Overdue").length} invoices</p>
+              <p className="text-xs text-muted-foreground">{invoices.filter(inv => normalizeStatus(inv.status) === "OVERDUE").length} invoices</p>
             </CardContent>
           </Card>
           <Card>
