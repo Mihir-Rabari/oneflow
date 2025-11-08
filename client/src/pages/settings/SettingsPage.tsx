@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -6,14 +6,18 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Save, Bell, Lock, Building, CreditCard } from "lucide-react"
+import { Save, Bell, Lock, Building } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
+import { usersApi } from "@/lib/api"
 
 export function SettingsPage() {
-  const [companyName, setCompanyName] = useState("OneFlow Inc")
-  const [companyEmail, setCompanyEmail] = useState("hello@oneflow.com")
-  const [companyAddress, setCompanyAddress] = useState("123 Business St, Tech City, TC 12345")
+  const { user } = useAuth()
+  const [companyName, setCompanyName] = useState("")
+  const [companyEmail, setCompanyEmail] = useState("")
+  const [companyAddress, setCompanyAddress] = useState("")
   const [timezone, setTimezone] = useState("asia/kolkata")
   const [currency, setCurrency] = useState("inr")
+  const [loading, setLoading] = useState(false)
   
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
@@ -25,10 +29,34 @@ export function SettingsPage() {
     console.log("Profile saved")
   }
 
-  const handlePasswordChange = (e: React.FormEvent) => {
+  const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Change password
-    console.log("Password changed")
+    
+    if (newPassword !== confirmPassword) {
+      alert("Passwords don't match!")
+      return
+    }
+
+    setLoading(true)
+    try {
+      const response = await usersApi.changePassword({
+        currentPassword,
+        newPassword
+      })
+      
+      if (response.error) {
+        throw new Error(response.error)
+      }
+      
+      alert("Password changed successfully!")
+      setCurrentPassword("")
+      setNewPassword("")
+      setConfirmPassword("")
+    } catch (err: any) {
+      alert(err.message || "Failed to change password")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -195,33 +223,6 @@ export function SettingsPage() {
                   <p className="text-sm text-muted-foreground">Receive updates about projects you're involved in</p>
                 </div>
                 <Button variant="outline">Enable</Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Billing */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5 text-primary" />
-                <CardTitle>Billing & Subscription</CardTitle>
-              </div>
-              <CardDescription>Manage your billing information and subscription</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <p className="font-medium">Professional Plan</p>
-                  <p className="text-sm text-muted-foreground">₹2,999/month • Next billing: Dec 15, 2025</p>
-                </div>
-                <Button variant="outline">Manage Plan</Button>
-              </div>
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <p className="font-medium">Payment Method</p>
-                  <p className="text-sm text-muted-foreground">•••• •••• •••• 4242</p>
-                </div>
-                <Button variant="outline">Update</Button>
               </div>
             </CardContent>
           </Card>
