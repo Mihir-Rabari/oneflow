@@ -4,14 +4,13 @@ import { prisma } from '@/config/database';
 import { env } from '@/config/env';
 import { sessionService, otpService, cacheService } from '@/config/redis';
 import { emailService } from '@/services/emailService';
-import { generateOTP } from '@oneflow/shared';
+import { generateOTP, UserRole, UserStatus } from '@oneflow/shared';
 import {
   BadRequestError,
   UnauthorizedError,
   ConflictError,
   NotFoundError,
 } from '@/utils/errors';
-import { UserRole, UserStatus } from '@oneflow/shared';
 import { logger } from '@/utils/logger';
 
 export class AuthService {

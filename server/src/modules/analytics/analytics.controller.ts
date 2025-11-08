@@ -1,6 +1,6 @@
 import { Response, NextFunction } from 'express';
 import { analyticsService } from './analytics.service';
-import { AuthRequest } from '@/middlewares/auth.middleware';
+import { AuthRequest } from '@/middlewares/auth';
 
 export class AnalyticsController {
   async getDashboardStats(req: AuthRequest, res: Response, next: NextFunction) {

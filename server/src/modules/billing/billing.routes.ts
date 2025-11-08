@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { billingController } from './billing.controller';
-import { authenticate } from '@/middlewares/auth.middleware';
+import { authenticate } from '@/middlewares/auth';
 
 const router = Router();
 

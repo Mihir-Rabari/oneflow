@@ -3,7 +3,7 @@ import { salesOrdersService } from './sales-orders.service';
 import { purchaseOrdersService } from './purchase-orders.service';
 import { invoicesService } from './invoices.service';
 import { vendorBillsService } from './vendor-bills.service';
-import { AuthRequest } from '@/middlewares/auth.middleware';
+import { AuthRequest } from '@/middlewares/auth';
 
 export class BillingController {
   // ===== Sales Orders =====
