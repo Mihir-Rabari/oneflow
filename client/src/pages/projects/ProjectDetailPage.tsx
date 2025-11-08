@@ -222,6 +222,7 @@ export function ProjectDetailPage() {
       setIsTaskDialogOpen(false)
       resetTaskForm()
       fetchTasks()
+      fetchProject() // Refresh project to update progress
     } catch (err: any) {
       setFormError(err.message || 'Failed to create task')
     } finally {
@@ -310,6 +311,7 @@ export function ProjectDetailPage() {
         throw new Error(response.error)
       }
       fetchTasks()
+      fetchProject() // Refresh project to update progress
     } catch (err: any) {
       console.error('Failed to delete task:', err)
     }
@@ -378,6 +380,7 @@ export function ProjectDetailPage() {
       setEditingTask(null)
       resetTaskForm()
       fetchTasks()
+      fetchProject() // Refresh project to update progress
     } catch (err: any) {
       setFormError(err.message || 'Failed to update task')
     } finally {
@@ -392,6 +395,7 @@ export function ProjectDetailPage() {
         throw new Error(response.error)
       }
       fetchTasks()
+      fetchProject() // Refresh project to update progress
     } catch (err: any) {
       console.error('Failed to update task status:', err)
     }
