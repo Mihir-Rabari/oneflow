@@ -28,7 +28,7 @@ import {
   GanttChartSquare,
   Trash2
 } from "lucide-react"
-import { projectsApi, tasksApi } from "@/lib/api"
+import { projectsApi, tasksApi, usersApi } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 
 // Task Priority constants
@@ -97,13 +97,36 @@ export function ProjectDetailPage() {
   const [taskView, setTaskView] = useState<'kanban' | 'gantt'>('kanban')
   const [editingTask, setEditingTask] = useState<any>(null)
   const [isEditTaskOpen, setIsEditTaskOpen] = useState(false)
+  const [teamMembers, setTeamMembers] = useState<any[]>([])
+  const [draggedTask, setDraggedTask] = useState<any>(null)
 
   useEffect(() => {
     if (projectId) {
       fetchProject()
       fetchTasks()
+      fetchTeamMembers()
     }
   }, [projectId])
+
+  const fetchTeamMembers = async () => {
+    try {
+      const response = await usersApi.getAll()
+      if (response.error) return
+      
+      let usersData: any[] = []
+      if (response.data?.data?.users && Array.isArray(response.data.data.users)) {
+        usersData = response.data.data.users
+      } else if (response.data?.users && Array.isArray(response.data.users)) {
+        usersData = response.data.users
+      } else if (Array.isArray(response.data)) {
+        usersData = response.data
+      }
+      
+      setTeamMembers(usersData)
+    } catch (err) {
+      console.error('Failed to fetch team members:', err)
+    }
+  }
 
   const fetchProject = async () => {
     setLoading(true)
@@ -163,7 +186,9 @@ export function ProjectDetailPage() {
 
     if (taskFormData.estimatedHours) payload.estimatedHours = Number(taskFormData.estimatedHours)
     if (dueDate) payload.dueDate = dueDate.toISOString()
-    if (taskFormData.assignedToId) payload.assignedToId = taskFormData.assignedToId
+    if (taskFormData.assignedToId && taskFormData.assignedToId !== 'unassigned') {
+      payload.assignedToId = taskFormData.assignedToId
+    }
 
     setCreateLoading(true)
     try {
@@ -297,7 +322,9 @@ export function ProjectDetailPage() {
 
       if (taskFormData.estimatedHours) payload.estimatedHours = Number(taskFormData.estimatedHours)
       if (dueDate) payload.dueDate = dueDate.toISOString()
-      if (taskFormData.assignedToId) payload.assignedToId = taskFormData.assignedToId
+      if (taskFormData.assignedToId && taskFormData.assignedToId !== 'unassigned') {
+        payload.assignedToId = taskFormData.assignedToId
+      }
 
       const response = await tasksApi.update(editingTask.id, payload)
       if (response.error) {
@@ -324,6 +351,47 @@ export function ProjectDetailPage() {
       fetchTasks()
     } catch (err: any) {
       console.error('Failed to update task status:', err)
+    }
+  }
+
+  const handleDragStart = (e: React.DragEvent, task: any) => {
+    setDraggedTask(task)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
+
+  const handleDrop = async (e: React.DragEvent, newStatus: string) => {
+    e.preventDefault()
+    
+    if (!draggedTask) return
+    
+    // Map UI status to backend status
+    const statusMap: { [key: string]: string } = {
+      'new': 'NEW',
+      'inProgress': 'IN_PROGRESS',
+      'blocked': 'BLOCKED',
+      'done': 'DONE'
+    }
+    
+    const backendStatus = statusMap[newStatus]
+    if (!backendStatus) return
+    
+    try {
+      const response = await tasksApi.update(draggedTask.id, { status: backendStatus })
+      if (response.error) {
+        throw new Error(response.error)
+      }
+      
+      // Optimistically update UI
+      fetchTasks()
+      setDraggedTask(null)
+    } catch (err: any) {
+      console.error('Failed to move task:', err)
+      setDraggedTask(null)
     }
   }
 
@@ -640,6 +708,26 @@ export function ProjectDetailPage() {
                       </div>
 
                       <div className="space-y-2">
+                        <Label>Assign to</Label>
+                        <Select
+                          value={taskFormData.assignedToId}
+                          onValueChange={(value) => setTaskFormData((prev) => ({ ...prev, assignedToId: value }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select team member (optional)" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="unassigned">Unassigned</SelectItem>
+                            {teamMembers.map((member) => (
+                              <SelectItem key={member.id} value={member.id}>
+                                {member.name} - {member.role}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
                         <Label>Due date</Label>
                         <DatePicker date={dueDate} onSelect={setDueDate} placeholder="Pick due date" />
                       </div>
@@ -727,6 +815,26 @@ export function ProjectDetailPage() {
                     </div>
 
                     <div className="space-y-2">
+                      <Label>Assign to</Label>
+                      <Select
+                        value={taskFormData.assignedToId}
+                        onValueChange={(value) => setTaskFormData((prev) => ({ ...prev, assignedToId: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select team member (optional)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="unassigned">Unassigned</SelectItem>
+                          {teamMembers.map((member) => (
+                            <SelectItem key={member.id} value={member.id}>
+                              {member.name} - {member.role}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
                       <Label>Due date</Label>
                       <DatePicker date={dueDate} onSelect={setDueDate} placeholder="Pick due date" />
                     </div>
@@ -752,14 +860,23 @@ export function ProjectDetailPage() {
             ) : taskView === 'kanban' ? (
               <div className="grid gap-4 md:grid-cols-4">
                 {/* New Column */}
-                <div className="space-y-3">
+                <div 
+                  className="space-y-3 p-3 rounded-lg bg-muted/30 min-h-[200px]"
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, 'new')}
+                >
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-sm text-muted-foreground uppercase">New</h3>
                     <Badge variant="secondary">{tasks.new?.length || 0}</Badge>
                   </div>
                   <div className="space-y-2">
                     {(tasks.new || []).map((task: any) => (
-                      <Card key={task.id} className="group relative hover:shadow-md transition-shadow">
+                      <Card 
+                        key={task.id} 
+                        className="group relative hover:shadow-md transition-shadow cursor-move"
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, task)}
+                      >
                         <CardHeader className="p-4">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 cursor-pointer" onClick={() => navigate(`/tasks/${task.id}`)}>
@@ -805,14 +922,23 @@ export function ProjectDetailPage() {
                 </div>
 
                 {/* In Progress Column */}
-                <div className="space-y-3">
+                <div 
+                  className="space-y-3 p-3 rounded-lg bg-muted/30 min-h-[200px]"
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, 'inProgress')}
+                >
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-sm text-muted-foreground uppercase">In Progress</h3>
                     <Badge variant="secondary">{tasks.inProgress?.length || 0}</Badge>
                   </div>
                   <div className="space-y-2">
                     {(tasks.inProgress || []).map((task: any) => (
-                      <Card key={task.id} className="group relative hover:shadow-md transition-shadow">
+                      <Card 
+                        key={task.id} 
+                        className="group relative hover:shadow-md transition-shadow cursor-move"
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, task)}
+                      >
                         <CardHeader className="p-4">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 cursor-pointer" onClick={() => navigate(`/tasks/${task.id}`)}>
@@ -858,14 +984,23 @@ export function ProjectDetailPage() {
                 </div>
 
                 {/* Blocked Column */}
-                <div className="space-y-3">
+                <div 
+                  className="space-y-3 p-3 rounded-lg bg-muted/30 min-h-[200px]"
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, 'blocked')}
+                >
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-sm text-muted-foreground uppercase">Blocked</h3>
                     <Badge variant="secondary">{tasks.blocked?.length || 0}</Badge>
                   </div>
                   <div className="space-y-2">
                     {(tasks.blocked || []).map((task: any) => (
-                      <Card key={task.id} className="group relative hover:shadow-md transition-shadow">
+                      <Card 
+                        key={task.id} 
+                        className="group relative hover:shadow-md transition-shadow cursor-move"
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, task)}
+                      >
                         <CardHeader className="p-4">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 cursor-pointer" onClick={() => navigate(`/tasks/${task.id}`)}>
@@ -911,14 +1046,23 @@ export function ProjectDetailPage() {
                 </div>
 
                 {/* Done Column */}
-                <div className="space-y-3">
+                <div 
+                  className="space-y-3 p-3 rounded-lg bg-muted/30 min-h-[200px]"
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, 'done')}
+                >
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-sm text-muted-foreground uppercase">Done</h3>
                     <Badge variant="secondary">{tasks.done?.length || 0}</Badge>
                   </div>
                   <div className="space-y-2">
                     {(tasks.done || []).map((task: any) => (
-                      <Card key={task.id} className="group relative hover:shadow-md transition-shadow">
+                      <Card 
+                        key={task.id} 
+                        className="group relative hover:shadow-md transition-shadow cursor-move"
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, task)}
+                      >
                         <CardHeader className="p-4">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 cursor-pointer" onClick={() => navigate(`/tasks/${task.id}`)}>
