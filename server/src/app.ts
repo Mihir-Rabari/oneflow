@@ -17,6 +17,7 @@ import tasksRoutes from './modules/tasks/tasks.routes';
 import timesheetsRoutes from './modules/timesheets/timesheets.routes';
 import billingRoutes from './modules/billing/billing.routes';
 import analyticsRoutes from './modules/analytics/analytics.routes';
+import activitiesRoutes from './modules/activities/activities.routes';
 
 const app: Application = express();
 
@@ -83,6 +84,7 @@ app.use('/api/tasks', tasksRoutes);
 app.use('/api/timesheets', timesheetsRoutes);
 app.use('/api/billing', billingRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/activities', activitiesRoutes);
 
 // 404 handler
 app.use(notFoundHandler);

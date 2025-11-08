@@ -378,6 +378,25 @@ export const usersApi = {
     }),
 }
 
+// Activities API
+export const activitiesApi = {
+  getAll: (params?: { page?: number; limit?: number; projectId?: string; activityType?: string }) => {
+    const searchParams = new URLSearchParams()
+    if (params?.page) searchParams.append('page', params.page.toString())
+    if (params?.limit) searchParams.append('limit', params.limit.toString())
+    if (params?.projectId) searchParams.append('projectId', params.projectId)
+    if (params?.activityType) searchParams.append('activityType', params.activityType)
+    
+    const queryString = searchParams.toString()
+    return apiRequest(`/activities${queryString ? `?${queryString}` : ''}`, { method: 'GET' })
+  },
+
+  getRecent: (limit?: number) => {
+    const queryString = limit ? `?limit=${limit}` : ''
+    return apiRequest(`/activities/recent${queryString}`, { method: 'GET' })
+  },
+}
+
 // Helper function to set auth token
 export const setAuthToken = (token: string) => {
   localStorage.setItem('accessToken', token)
