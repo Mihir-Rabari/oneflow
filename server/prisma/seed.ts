@@ -8,6 +8,12 @@ async function main() {
 
   // Clear existing data
   console.log('🗑️  Clearing existing data...');
+  await prisma.expense.deleteMany();
+  await prisma.vendorBill.deleteMany();
+  await prisma.customerInvoice.deleteMany();
+  await prisma.purchaseOrder.deleteMany();
+  await prisma.salesOrder.deleteMany();
+  await prisma.taskComment.deleteMany();
   await prisma.timesheet.deleteMany();
   await prisma.task.deleteMany();
   await prisma.projectMember.deleteMany();
@@ -81,7 +87,72 @@ async function main() {
     },
   });
 
-  console.log(`✅ Created 5 users`);
+  const sales = await prisma.user.create({
+    data: {
+      name: 'Robert Sales',
+      email: 'sales@oneflow.com',
+      password: hashedPassword,
+      role: 'SALES_FINANCE',
+      status: 'ACTIVE',
+      emailVerified: true,
+      department: 'Sales',
+      hourlyRate: 65,
+    },
+  });
+
+  const finance = await prisma.user.create({
+    data: {
+      name: 'Lisa Finance',
+      email: 'finance@oneflow.com',
+      password: hashedPassword,
+      role: 'SALES_FINANCE',
+      status: 'ACTIVE',
+      emailVerified: true,
+      department: 'Finance',
+      hourlyRate: 65,
+    },
+  });
+
+  const dev3 = await prisma.user.create({
+    data: {
+      name: 'Alice QA',
+      email: 'alice@oneflow.com',
+      password: hashedPassword,
+      role: 'TEAM_MEMBER',
+      status: 'ACTIVE',
+      emailVerified: true,
+      department: 'QA',
+      hourlyRate: 50,
+    },
+  });
+
+  const dev4 = await prisma.user.create({
+    data: {
+      name: 'Bob DevOps',
+      email: 'bob@oneflow.com',
+      password: hashedPassword,
+      role: 'TEAM_MEMBER',
+      status: 'ACTIVE',
+      emailVerified: true,
+      department: 'DevOps',
+      hourlyRate: 60,
+    },
+  });
+
+  const dev5 = await prisma.user.create({
+    data: {
+      name: 'Diana UX',
+      email: 'diana@oneflow.com',
+      password: hashedPassword,
+      role: 'TEAM_MEMBER',
+      status: 'ACTIVE',
+      emailVerified: true,
+      department: 'Design',
+      hourlyRate: 55,
+    },
+  });
+
+  console.log(`✅ Created 10 users (1 Admin, 2 PMs, 5 Team Members, 2 Sales/Finance)`);
 
   // Create 3 projects
   console.log('📁 Creating projects...');
@@ -147,7 +218,47 @@ async function main() {
     },
   });
 
-  console.log(`✅ Created 3 projects (2 IN_PROGRESS, 1 PLANNED)`);
+  const project4 = await prisma.project.create({
+    data: {
+      name: 'CRM System',
+      description: 'Custom CRM with lead management and analytics',
+      type: 'TIME_AND_MATERIAL',
+      status: 'IN_PROGRESS',
+      budget: 120000,
+      spent: 45000,
+      revenue: 72000,
+      profit: 27000,
+      startDate: new Date('2025-08-01'),
+      endDate: new Date('2026-01-31'),
+      deadline: new Date('2026-01-15'),
+      progress: 60,
+      projectManagerId: pm2.id,
+      clientName: 'Sales Pro Inc',
+      clientEmail: 'it@salespro.com',
+    },
+  });
+
+  const project5 = await prisma.project.create({
+    data: {
+      name: 'Marketing Automation',
+      description: 'Email marketing automation platform',
+      type: 'FIXED_PRICE',
+      status: 'COMPLETED',
+      budget: 80000,
+      spent: 30000,
+      revenue: 80000,
+      profit: 50000,
+      startDate: new Date('2025-05-01'),
+      endDate: new Date('2025-10-31'),
+      deadline: new Date('2025-10-15'),
+      progress: 100,
+      projectManagerId: pm1.id,
+      clientName: 'Marketing Hub',
+      clientEmail: 'dev@markethub.com',
+    },
+  });
+
+  console.log(`✅ Created 5 projects (3 IN_PROGRESS, 1 PLANNED, 1 COMPLETED)`);
 
   // Add team members to projects
   console.log('👨‍💻 Adding team members to projects...');
@@ -156,9 +267,15 @@ async function main() {
     data: [
       { projectId: project1.id, userId: dev1.id },
       { projectId: project1.id, userId: dev2.id },
+      { projectId: project1.id, userId: dev3.id },
       { projectId: project2.id, userId: dev1.id },
-      { projectId: project2.id, userId: dev2.id },
+      { projectId: project2.id, userId: dev4.id },
       { projectId: project3.id, userId: dev2.id },
+      { projectId: project3.id, userId: dev5.id },
+      { projectId: project4.id, userId: dev1.id },
+      { projectId: project4.id, userId: dev3.id },
+      { projectId: project5.id, userId: dev2.id },
+      { projectId: project5.id, userId: dev4.id },
     ],
   });
 
@@ -313,18 +430,42 @@ async function main() {
 
   console.log(`✅ Created 5 timesheet entries`);
 
+  // Create Sales Orders
+  console.log('💰 Creating sales orders...');
+  await prisma.salesOrder.createMany({
+    data: [
+      { orderNumber: 'SO-2025-0001', projectId: project1.id, customerName: 'Tech Retail Inc', amount: 50000, status: 'APPROVED', orderDate: new Date('2025-10-01'), createdById: sales.id },
+      { orderNumber: 'SO-2025-0002', projectId: project1.id, customerName: 'Tech Retail Inc', amount: 50000, status: 'DRAFT', orderDate: new Date('2025-11-01'), createdById: sales.id },
+      { orderNumber: 'SO-2025-0003', projectId: project2.id, customerName: 'FinTech Solutions', amount: 150000, status: 'APPROVED', orderDate: new Date('2025-09-15'), createdById: sales.id },
+      { orderNumber: 'SO-2025-0004', projectId: project4.id, customerName: 'Sales Pro Inc', amount: 120000, status: 'APPROVED', orderDate: new Date('2025-08-01'), createdById: finance.id },
+    ],
+  });
+  console.log(`✅ Created 4 sales orders`);
+
+  // Create Expenses
+  console.log('💳 Creating expenses...');
+  await prisma.expense.createMany({
+    data: [
+      { description: 'Client meeting travel', amount: 1500, category: 'TRAVEL', status: 'APPROVED', expenseDate: new Date('2025-11-01'), projectId: project1.id, userId: dev1.id, isBillable: true, approvedById: pm1.id },
+      { description: 'Development tools license', amount: 2000, category: 'EQUIPMENT', status: 'APPROVED', expenseDate: new Date('2025-10-15'), projectId: project1.id, userId: dev1.id, isBillable: false, approvedById: pm1.id },
+      { description: 'Design software subscription', amount: 500, category: 'SOFTWARE', status: 'PENDING', expenseDate: new Date('2025-11-05'), projectId: project2.id, userId: dev2.id, isBillable: false },
+    ],
+  });
+  console.log(`✅ Created 3 expenses`);
+
   console.log('\n✅ Database seeding completed successfully!\n');
   console.log('📊 Summary:');
-  console.log(`   - 5 Users (1 Admin, 2 Project Managers, 2 Team Members)`);
-  console.log(`   - 3 Projects (2 IN_PROGRESS, 1 PLANNED)`);
-  console.log(`   - 6 Tasks (3 Done, 2 In Progress, 1 Todo)`);
-  console.log(`   - 5 Timesheet Entries (34 hours total)\n`);
-  console.log('🔑 Login credentials:');
-  console.log(`   Email: admin@oneflow.com | Password: Password123!`);
-  console.log(`   Email: john@oneflow.com  | Password: Password123!`);
-  console.log(`   Email: sarah@oneflow.com | Password: Password123!`);
-  console.log(`   Email: mike@oneflow.com  | Password: Password123!`);
-  console.log(`   Email: emma@oneflow.com  | Password: Password123!`);
+  console.log(`   - 10 Users (1 Admin, 2 PMs, 5 Team Members, 2 Sales/Finance)`);
+  console.log(`   - 5 Projects (3 IN_PROGRESS, 1 PLANNED, 1 COMPLETED)`);
+  console.log(`   - 6 Tasks (3 Done, 2 In Progress, 1 New)`);
+  console.log(`   - 5 Timesheet Entries (34 hours total)`);
+  console.log(`   - 4 Sales Orders (₹370,000 revenue)`);
+  console.log(`   - 3 Expenses (₹4,000)\n`);
+  console.log('🔑 Login credentials (Password: Password123! for all):');
+  console.log(`   Admin:    admin@oneflow.com`);
+  console.log(`   PM:       john@oneflow.com | sarah@oneflow.com`);
+  console.log(`   Team:     mike@oneflow.com | emma@oneflow.com | alice@oneflow.com`);
+  console.log(`   Finance:  sales@oneflow.com | finance@oneflow.com`);
 }
 
 main()
