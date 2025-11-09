@@ -110,7 +110,8 @@ export function TeamPage() {
           </div>
           <Dialog>
             <DialogTrigger asChild>
-              <Button icon={<Plus className="h-4 w-4" />}>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
                 Invite Member
               </Button>
             </DialogTrigger>
@@ -161,7 +162,8 @@ export function TeamPage() {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button type="submit" icon={<Mail className="h-4 w-4" />}>
+                  <Button type="submit">
+                    <Mail className="h-4 w-4 mr-2" />
                     Send Invitation
                   </Button>
                 </DialogFooter>
@@ -186,7 +188,7 @@ export function TeamPage() {
               <CardTitle className="text-sm font-medium">Total Hours</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{teamMembers.reduce((sum, m) => sum + m.hours, 0)}</div>
+              <div className="text-2xl font-bold">{teamMembers.reduce((sum, m) => sum + (m.hours || 0), 0)}</div>
               <p className="text-xs text-muted-foreground">This month</p>
             </CardContent>
           </Card>
@@ -195,7 +197,7 @@ export function TeamPage() {
               <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{teamMembers.reduce((sum, m) => sum + m.projects, 0)}</div>
+              <div className="text-2xl font-bold">{teamMembers.reduce((sum, m) => sum + (m.projects || 0), 0)}</div>
               <p className="text-xs text-muted-foreground">Across all members</p>
             </CardContent>
           </Card>
@@ -205,7 +207,9 @@ export function TeamPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {Math.round(teamMembers.filter(m => m.status === "Active").reduce((sum, m) => sum + m.hours, 0) / teamMembers.filter(m => m.status === "Active").length)}
+                {teamMembers.filter(m => m.status === "ACTIVE").length > 0 
+                  ? Math.round(teamMembers.filter(m => m.status === "ACTIVE").reduce((sum, m) => sum + (m.hours || 0), 0) / teamMembers.filter(m => m.status === "ACTIVE").length)
+                  : 0}
               </div>
               <p className="text-xs text-muted-foreground">Per month</p>
             </CardContent>

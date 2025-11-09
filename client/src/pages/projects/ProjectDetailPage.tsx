@@ -39,6 +39,7 @@ import {
 } from "lucide-react"
 import { projectsApi, tasksApi, usersApi, salesOrdersApi, invoicesApi, purchaseOrdersApi, expensesApi } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
+import { CreateTimesheetModal, CreateExpenseModal } from "@/components/modals"
 
 // Task Priority constants
 const TaskPriority = {
@@ -114,6 +115,8 @@ export function ProjectDetailPage() {
   const [purchaseOrders, setPurchaseOrders] = useState<any[]>([])
   const [expenses, setExpenses] = useState<any[]>([])
   const [documentsLoading, setDocumentsLoading] = useState(false)
+  const [isTimesheetModalOpen, setIsTimesheetModalOpen] = useState(false)
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false)
 
   useEffect(() => {
     if (projectId) {
@@ -567,6 +570,14 @@ export function ProjectDetailPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setIsTimesheetModalOpen(true)}>
+              <Clock className="h-4 w-4 mr-2" />
+              Log Time
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setIsExpenseModalOpen(true)}>
+              <DollarSign className="h-4 w-4 mr-2" />
+              Add Expense
+            </Button>
             <Select
               value={project.status}
               onValueChange={handleUpdateStatus}
@@ -1583,6 +1594,27 @@ export function ProjectDetailPage() {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Timesheet Modal */}
+        <CreateTimesheetModal
+          open={isTimesheetModalOpen}
+          onOpenChange={setIsTimesheetModalOpen}
+          onSuccess={() => {
+            // Refresh project data
+            fetchProject();
+          }}
+          projectId={projectId}
+        />
+
+        {/* Expense Modal */}
+        <CreateExpenseModal
+          open={isExpenseModalOpen}
+          onOpenChange={setIsExpenseModalOpen}
+          onSuccess={() => {
+            // Refresh project documents
+            fetchProjectDocuments();
+          }}
+        />
       </div>
     </DashboardLayout>
   )

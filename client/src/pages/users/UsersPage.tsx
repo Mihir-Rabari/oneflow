@@ -138,7 +138,10 @@ export function UsersPage() {
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button icon={<Plus className="h-4 w-4" />}>Add User</Button>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add User
+              </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>

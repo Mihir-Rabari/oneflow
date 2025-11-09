@@ -143,7 +143,10 @@ export function ExpensesPage() {
           </div>
           <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
             <DialogTrigger asChild>
-              <Button icon={<Plus className="h-4 w-4" />}>New Expense</Button>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                New Expense
+              </Button>
             </DialogTrigger>
             <DialogContent className="max-h-[85vh] overflow-y-auto">
               <form onSubmit={handleCreateExpense} className="space-y-4">

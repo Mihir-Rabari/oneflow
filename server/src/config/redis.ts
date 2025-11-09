@@ -5,7 +5,12 @@ import { logger } from '@/utils/logger';
 const redis = new Redis(env.REDIS_URL, {
   maxRetriesPerRequest: 3,
   enableReadyCheck: true,
+  lazyConnect: false,
   retryStrategy(times: number) {
+    if (times > 10) {
+      logger.error('❌ Redis max retries reached, giving up');
+      return null; // Stop retrying
+    }
     const delay = Math.min(times * 50, 2000);
     return delay;
   },

@@ -1,33 +1,44 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { RoleProtectedRoute } from './components/RoleProtectedRoute'
+import { useAuth } from './contexts/AuthContext'
 import { LandingPage } from './pages/LandingPage'
 import { LoginPage } from './pages/auth/LoginPage'
 import { RegisterPage } from './pages/auth/RegisterPage'
 import { OTPPage } from './pages/auth/OTPPage'
-import { DashboardPage } from './pages/dashboard/DashboardPage'
 import { AdminDashboard } from './pages/dashboards/AdminDashboard'
 import { ProjectManagerDashboard } from './pages/dashboards/ProjectManagerDashboard'
-import { TeamMemberDashboard } from './pages/dashboards/TeamMemberDashboard'
-import { SalesFinanceDashboard } from './pages/dashboards/SalesFinanceDashboard'
+import TeamMemberProjectView from './pages/dashboards/TeamMemberProjectView'
+import FinanceApprovalsPage from './pages/finance/FinanceApprovalsPage'
 import { ProjectsPage } from './pages/projects/ProjectsPage'
 import { ProjectDetailPage } from './pages/projects/ProjectDetailPage'
 import { TaskDetailPage } from './pages/tasks/TaskDetailPage'
-import { TimesheetsPage } from './pages/timesheets/TimesheetsPage'
-import { BillingPage } from './pages/billing/BillingPage'
-import { AnalyticsPage } from './pages/analytics/AnalyticsPage'
 import { TeamPage } from './pages/team/TeamPage'
 import { SettingsPage } from './pages/settings/SettingsPage'
-import { ComponentsDemo } from './pages/ComponentsDemo'
-import { SalesOrdersPage } from './pages/documents/SalesOrdersPage'
-import { PurchaseOrdersPage } from './pages/documents/PurchaseOrdersPage'
-import { InvoicesPage } from './pages/documents/InvoicesPage'
-import { VendorBillsPage } from './pages/documents/VendorBillsPage'
 import { ExpensesPage } from './pages/documents/ExpensesPage'
-import { ProductsPage } from './pages/documents/ProductsPage'
 import { UsersPage } from './pages/users/UsersPage'
 import { UnauthorizedPage } from './pages/UnauthorizedPage'
+
+// Dashboard redirect based on role
+function DashboardRedirect() {
+  const { user } = useAuth()
+  
+  if (!user) return <Navigate to="/login" replace />
+  
+  switch (user.role) {
+    case 'ADMIN':
+      return <Navigate to="/admin/dashboard" replace />
+    case 'PROJECT_MANAGER':
+      return <Navigate to="/pm/dashboard" replace />
+    case 'TEAM_MEMBER':
+      return <Navigate to="/team/dashboard" replace />
+    case 'SALES_FINANCE':
+      return <Navigate to="/finance/approvals" replace />
+    default:
+      return <Navigate to="/login" replace />
+  }
+}
 
 function App() {
   return (
@@ -41,33 +52,28 @@ function App() {
           <Route path="/verify-otp" element={<OTPPage />} />
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
           
-          {/* Protected routes */}
-          <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+          {/* Dashboard redirect based on role */}
+          <Route path="/dashboard" element={<ProtectedRoute><DashboardRedirect /></ProtectedRoute>} />
           
-          {/* Role-specific dashboards */}
+          {/* Role-specific dashboards - Clean structure */}
           <Route path="/admin/dashboard" element={<RoleProtectedRoute allowedRoles={["ADMIN"]}><AdminDashboard /></RoleProtectedRoute>} />
           <Route path="/pm/dashboard" element={<RoleProtectedRoute allowedRoles={["PROJECT_MANAGER"]}><ProjectManagerDashboard /></RoleProtectedRoute>} />
-          <Route path="/team/dashboard" element={<RoleProtectedRoute allowedRoles={["TEAM_MEMBER"]}><TeamMemberDashboard /></RoleProtectedRoute>} />
-          <Route path="/finance/dashboard" element={<RoleProtectedRoute allowedRoles={["SALES_FINANCE"]}><SalesFinanceDashboard /></RoleProtectedRoute>} />
-          <Route path="/projects" element={<ProtectedRoute><ProjectsPage /></ProtectedRoute>} />
+          <Route path="/team/dashboard" element={<RoleProtectedRoute allowedRoles={["TEAM_MEMBER"]}><TeamMemberProjectView /></RoleProtectedRoute>} />
+          <Route path="/finance/approvals" element={<RoleProtectedRoute allowedRoles={["SALES_FINANCE", "ADMIN"]}><FinanceApprovalsPage /></RoleProtectedRoute>} />
+          
+          {/* Admin & PM routes */}
+          <Route path="/projects" element={<RoleProtectedRoute allowedRoles={["ADMIN", "PROJECT_MANAGER"]}><ProjectsPage /></RoleProtectedRoute>} />
           <Route path="/projects/:projectId" element={<ProtectedRoute><ProjectDetailPage /></ProtectedRoute>} />
+          <Route path="/tasks" element={<RoleProtectedRoute allowedRoles={["ADMIN", "PROJECT_MANAGER"]}><TaskDetailPage /></RoleProtectedRoute>} />
           <Route path="/tasks/:taskId" element={<ProtectedRoute><TaskDetailPage /></ProtectedRoute>} />
-          <Route path="/timesheets" element={<ProtectedRoute><TimesheetsPage /></ProtectedRoute>} />
-          <Route path="/billing" element={<RoleProtectedRoute allowedRoles={["ADMIN", "PROJECT_MANAGER"]}><BillingPage /></RoleProtectedRoute>} />
-          <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
-          <Route path="/team" element={<ProtectedRoute><TeamPage /></ProtectedRoute>} />
+          <Route path="/team" element={<RoleProtectedRoute allowedRoles={["ADMIN", "PROJECT_MANAGER"]}><TeamPage /></RoleProtectedRoute>} />
+          
+          {/* Admin only routes */}
           <Route path="/users" element={<RoleProtectedRoute allowedRoles={["ADMIN"]}><UsersPage /></RoleProtectedRoute>} />
+          <Route path="/admin/expenses" element={<RoleProtectedRoute allowedRoles={["ADMIN"]}><ExpensesPage /></RoleProtectedRoute>} />
+          
+          {/* Common routes */}
           <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-          
-          {/* Document routes */}
-          <Route path="/sales-orders" element={<ProtectedRoute><SalesOrdersPage /></ProtectedRoute>} />
-          <Route path="/purchase-orders" element={<ProtectedRoute><PurchaseOrdersPage /></ProtectedRoute>} />
-          <Route path="/invoices" element={<ProtectedRoute><InvoicesPage /></ProtectedRoute>} />
-          <Route path="/vendor-bills" element={<ProtectedRoute><VendorBillsPage /></ProtectedRoute>} />
-          <Route path="/expenses" element={<ProtectedRoute><ExpensesPage /></ProtectedRoute>} />
-          <Route path="/products" element={<ProtectedRoute><ProductsPage /></ProtectedRoute>} />
-          
-          <Route path="/components" element={<ComponentsDemo />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

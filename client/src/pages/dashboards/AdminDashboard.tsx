@@ -11,6 +11,7 @@ import {
   AlertCircle
 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { ActivityFeed } from "@/components/ActivityFeed"
 
 export function AdminDashboard() {
   const navigate = useNavigate()
@@ -55,6 +56,9 @@ export function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Activity Feed */}
+        <ActivityFeed limit={15} showFilters={true} autoRefresh={true} refreshInterval={4000} />
 
         {/* Admin Privileges Notice */}
         <Card className="border-orange-200 bg-orange-50">

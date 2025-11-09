@@ -20,10 +20,25 @@ if (process.env.NODE_ENV === 'development') {
 
 export const connectDatabase = async () => {
   try {
-    await prisma.$connect();
+    logger.info('Attempting database connection...');
+    
+    // Add timeout to prevent hanging
+    const connectWithTimeout = Promise.race([
+      prisma.$connect(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Database connection timeout after 10s')), 10000)
+      )
+    ]);
+    
+    await connectWithTimeout;
     logger.info('✅ Database connected successfully');
+    
+    // Test the connection
+    await prisma.$queryRaw`SELECT 1`;
+    logger.info('✅ Database query test successful');
   } catch (error) {
     logger.error('❌ Database connection failed:', error);
+    logger.error('Check if PostgreSQL is running and DATABASE_URL is correct');
     process.exit(1);
   }
 };

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Approved</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+        .approved {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .info-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #666;
+        }
+        .info-value {
+            color: #333;
+            text-align: right;
+        }
+        .remark-box {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✅ Expense Approved</h1>
+        </div>
+        <div class="content">
+            <p>Hello <strong>{{employeeName}}</strong>,</p>
+            
+            <p>Great news! Your expense request has been approved by the Finance team.</p>
+            
+            <span class="status-badge approved">APPROVED</span>
+            
+            <div class="info-box">
+                <div class="info-row">
+                    <span class="info-label">Document Number:</span>
+                    <span class="info-value"><strong>{{documentNumber}}</strong></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Document Type:</span>
+                    <span class="info-value">{{documentType}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Amount:</span>
+                    <span class="info-value"><strong>{{amount}}</strong></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Project:</span>
+                    <span class="info-value">{{projectName}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Approved Date:</span>
+                    <span class="info-value">{{approvedDate}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Approved By:</span>
+                    <span class="info-value">{{approvedBy}}</span>
+                </div>
+            </div>
+            
+            {{#if remark}}
+            <div class="remark-box">
+                <strong>Approver's Remark:</strong>
+                <p style="margin: 10px 0 0 0;">{{remark}}</p>
+            </div>
+            {{/if}}
+            
+            <p>The approved amount will be processed according to company policy.</p>
+            
+            <center>
+                <a href="{{dashboardUrl}}" class="button">View in Dashboard</a>
+            </center>
+            
+            <p style="margin-top: 30px; font-size: 14px; color: #666;">
+                If you have any questions, please contact the Finance department.
+            </p>
+        </div>
+        <div class="footer">
+            <p>This is an automated email from OneFlow Project Management System.</p>
+            <p>&copy; 2024 OneFlow. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

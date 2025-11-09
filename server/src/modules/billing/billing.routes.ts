@@ -39,4 +39,26 @@ router.post('/vendor-bills', writeAuth, billingController.createVendorBill.bind(
 router.patch('/vendor-bills/:id', writeAuth, billingController.updateVendorBill.bind(billingController));
 router.delete('/vendor-bills/:id', writeAuth, billingController.deleteVendorBill.bind(billingController));
 
+// ===== Approvals (Sales & Finance Team) =====
+const approvalAuth = authorize(UserRole.ADMIN, UserRole.SALES_FINANCE);
+
+router.get('/approvals/pending', approvalAuth, billingController.getPendingApprovals.bind(billingController));
+router.get('/approvals/stats', approvalAuth, billingController.getApprovalStats.bind(billingController));
+
+// Sales Order Approvals
+router.post('/sales-orders/:id/approve', approvalAuth, billingController.approveSalesOrder.bind(billingController));
+router.post('/sales-orders/:id/reject', approvalAuth, billingController.rejectSalesOrder.bind(billingController));
+
+// Purchase Order Approvals
+router.post('/purchase-orders/:id/approve', approvalAuth, billingController.approvePurchaseOrder.bind(billingController));
+router.post('/purchase-orders/:id/reject', approvalAuth, billingController.rejectPurchaseOrder.bind(billingController));
+
+// Invoice Approvals
+router.post('/invoices/:id/approve', approvalAuth, billingController.approveInvoice.bind(billingController));
+router.post('/invoices/:id/reject', approvalAuth, billingController.rejectInvoice.bind(billingController));
+
+// Vendor Bill Approvals
+router.post('/vendor-bills/:id/approve', approvalAuth, billingController.approveVendorBill.bind(billingController));
+router.post('/vendor-bills/:id/reject', approvalAuth, billingController.rejectVendorBill.bind(billingController));
+
 export default router;

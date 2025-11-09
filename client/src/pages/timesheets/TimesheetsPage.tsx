@@ -106,7 +106,8 @@ export function TimesheetsPage() {
           </div>
           <Dialog>
             <DialogTrigger asChild>
-              <Button icon={<Plus className="h-4 w-4" />}>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
                 Log Time
               </Button>
             </DialogTrigger>

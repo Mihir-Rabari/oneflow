@@ -3,6 +3,7 @@ import { salesOrdersService } from './sales-orders.service';
 import { purchaseOrdersService } from './purchase-orders.service';
 import { invoicesService } from './invoices.service';
 import { vendorBillsService } from './vendor-bills.service';
+import { approvalsService } from './approvals.service';
 import { AuthRequest } from '@/middlewares/auth';
 
 export class BillingController {
@@ -240,6 +241,101 @@ export class BillingController {
   async deleteVendorBill(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const result = await vendorBillsService.deleteVendorBill((req as any).params.id, req.user!.id, req.user!.role);
+      res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // ===== Approvals =====
+  async getPendingApprovals(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const approvals = await approvalsService.getPendingApprovals(req.user!.id, req.user!.role);
+      res.json({ success: true, data: approvals });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getApprovalStats(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const stats = await approvalsService.getApprovalStats(req.user!.id, req.user!.role);
+      res.json({ success: true, data: stats });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async approveSalesOrder(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await approvalsService.approveSalesOrder((req as any).params.id, req.user!.id, req.user!.role);
+      res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async rejectSalesOrder(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { reason } = (req as any).body;
+      const result = await approvalsService.rejectSalesOrder((req as any).params.id, req.user!.id, req.user!.role, reason);
+      res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async approvePurchaseOrder(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await approvalsService.approvePurchaseOrder((req as any).params.id, req.user!.id, req.user!.role);
+      res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async rejectPurchaseOrder(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { reason } = (req as any).body;
+      const result = await approvalsService.rejectPurchaseOrder((req as any).params.id, req.user!.id, req.user!.role, reason);
+      res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async approveInvoice(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await approvalsService.approveInvoice((req as any).params.id, req.user!.id, req.user!.role);
+      res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async rejectInvoice(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { reason } = (req as any).body;
+      const result = await approvalsService.rejectInvoice((req as any).params.id, req.user!.id, req.user!.role, reason);
+      res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async approveVendorBill(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await approvalsService.approveVendorBill((req as any).params.id, req.user!.id, req.user!.role);
+      res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async rejectVendorBill(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { reason } = (req as any).body;
+      const result = await approvalsService.rejectVendorBill((req as any).params.id, req.user!.id, req.user!.role, reason);
       res.json({ success: true, data: result });
     } catch (error) {
       next(error);

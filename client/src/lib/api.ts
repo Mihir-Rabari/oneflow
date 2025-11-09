@@ -30,15 +30,18 @@ async function apiRequest<T>(
     const data = await response.json()
 
     if (!response.ok) {
+      console.error(`API Error [${response.status}]:`, data)
       return {
-        error: data.message || 'An error occurred',
+        error: data.message || data.error || 'An error occurred',
       }
     }
 
     return { data }
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Network error'
+    console.error('API Request Error:', errorMessage)
     return {
-      error: error instanceof Error ? error.message : 'Network error',
+      error: errorMessage,
     }
   }
 }
@@ -98,10 +101,15 @@ export const projectsApi = {
       method: 'DELETE',
     }),
 
-  addMember: (projectId: string, userId: string, role: string) =>
-    apiRequest(`/projects/${projectId}/members`, {
+  addMember: (projectId: string, userId: string) =>
+    apiRequest(`/projects/${projectId}/team`, {
       method: 'POST',
-      body: JSON.stringify({ userId, role }),
+      body: JSON.stringify({ userId }),
+    }),
+
+  removeMember: (projectId: string, userId: string) =>
+    apiRequest(`/projects/${projectId}/team/${userId}`, {
+      method: 'DELETE',
     }),
 }
 
@@ -164,6 +172,47 @@ export const timesheetsApi = {
 export const billingApi = {
   getInvoices: () =>
     apiRequest('/billing/invoices', { method: 'GET' }),
+  
+  // Approval endpoints
+  getPendingApprovals: () =>
+    apiRequest('/billing/approvals/pending', { method: 'GET' }),
+  
+  getApprovalStats: () =>
+    apiRequest('/billing/approvals/stats', { method: 'GET' }),
+  
+  approveDocument: (type: string, id: string) =>
+    apiRequest(`/billing/${type}/${id}/approve`, { method: 'POST' }),
+  
+  rejectDocument: (type: string, id: string, reason?: string) =>
+    apiRequest(`/billing/${type}/${id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }),
+
+  // Create endpoints
+  createSalesOrder: (data: any) =>
+    apiRequest('/billing/sales-orders', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  createPurchaseOrder: (data: any) =>
+    apiRequest('/billing/purchase-orders', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  createInvoice: (data: any) =>
+    apiRequest('/billing/invoices', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  createVendorBill: (data: any) =>
+    apiRequest('/billing/vendor-bills', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 }
 
 // Sales Orders API

@@ -20,6 +20,7 @@ import {
 import { useNavigate } from "react-router-dom"
 import { projectsApi, expensesApi } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
+import { ActivityFeed } from "@/components/ActivityFeed"
 
 export function ProjectManagerDashboard() {
   const navigate = useNavigate()
@@ -57,23 +58,28 @@ export function ProjectManagerDashboard() {
 
       setRecentProjects(myProjects.slice(0, 5))
       
-      // Fetch pending expenses for approval
-      const expRes = await expensesApi.getAll()
-      let allExpenses: any[] = []
-      if (Array.isArray(expRes.data)) {
-        allExpenses = expRes.data
-      } else if (expRes.data?.data && Array.isArray(expRes.data.data)) {
-        allExpenses = expRes.data.data
-      } else if (expRes.data?.expenses && Array.isArray(expRes.data.expenses)) {
-        allExpenses = expRes.data.expenses
+      // Fetch pending expenses for approval (skip if API not available)
+      try {
+        const expRes = await expensesApi.getAll()
+        let allExpenses: any[] = []
+        if (Array.isArray(expRes.data)) {
+          allExpenses = expRes.data
+        } else if (expRes.data?.data && Array.isArray(expRes.data.data)) {
+          allExpenses = expRes.data.data
+        } else if (expRes.data?.expenses && Array.isArray(expRes.data.expenses)) {
+          allExpenses = expRes.data.expenses
+        }
+        
+        // Filter expenses from projects managed by this PM and status is PENDING
+        const myProjectIds = myProjects.map((p: any) => p.id)
+        const pending = allExpenses.filter((exp: any) => 
+          myProjectIds.includes(exp.projectId) && exp.status === 'PENDING'
+        )
+        setPendingExpenses(pending)
+      } catch (expError) {
+        console.log('Expenses API not available, skipping')
+        setPendingExpenses([])
       }
-      
-      // Filter expenses from projects managed by this PM and status is PENDING
-      const myProjectIds = myProjects.map((p: any) => p.id)
-      const pending = allExpenses.filter((exp: any) => 
-        myProjectIds.includes(exp.projectId) && exp.status === 'PENDING'
-      )
-      setPendingExpenses(pending)
     } catch (error) {
       console.error('Failed to fetch stats:', error)
     } finally {
@@ -82,29 +88,37 @@ export function ProjectManagerDashboard() {
   }
   
   const handleApproveExpense = async (expenseId: string) => {
+    if (!confirm('Are you sure you want to approve this expense?')) return;
+    
     try {
-      await expensesApi.update(expenseId, { status: 'APPROVED', approvedById: user?.id })
+      await expensesApi.approve(expenseId)
+      alert('Expense approved successfully!')
       // Refresh expenses
       fetchStats()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to approve expense:', error)
+      alert(error.message || 'Failed to approve expense')
     }
   }
   
   const handleRejectExpense = async (expenseId: string) => {
+    const reason = prompt('Please provide a reason for rejection:');
+    if (!reason) return;
+    
     try {
-      await expensesApi.update(expenseId, { status: 'REJECTED' })
+      await expensesApi.reject(expenseId)
+      alert('Expense rejected successfully!')
       // Refresh expenses
       fetchStats()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to reject expense:', error)
+      alert(error.message || 'Failed to reject expense')
     }
   }
 
   const quickActions = [
-    { icon: Plus, label: "New Project", path: "/projects", action: "create", color: "text-blue-600" },
+    { icon: Plus, label: "New Project", path: "/projects?action=create", action: "create", color: "text-blue-600" },
     { icon: FolderKanban, label: "My Projects", path: "/projects", color: "text-green-600" },
-    { icon: CheckSquare, label: "My Tasks", path: "/tasks", color: "text-purple-600" },
     { icon: Users, label: "Team", path: "/team", color: "text-orange-600" },
   ]
 
@@ -304,6 +318,9 @@ export function ProjectManagerDashboard() {
             )}
           </CardContent>
         </Card>
+
+        {/* Activity Feed */}
+        <ActivityFeed limit={10} showFilters={true} autoRefresh={true} refreshInterval={4000} />
 
         {/* PM Privileges */}
         <Card className="border-blue-200 bg-blue-50">

@@ -39,6 +39,7 @@ type ProjectFormData = {
   projectManagerId: string
   clientName: string
   clientEmail: string
+  teamMemberIds: string[]
 }
 
 export function ProjectsPage() {
@@ -53,6 +54,7 @@ export function ProjectsPage() {
   const [formError, setFormError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [projectManagers, setProjectManagers] = useState<any[]>([])
+  const [teamMembers, setTeamMembers] = useState<any[]>([])
   const [managersLoading, setManagersLoading] = useState(false)
   const [startDate, setStartDate] = useState<Date | undefined>(new Date())
   const [endDate, setEndDate] = useState<Date | undefined>()
@@ -65,6 +67,7 @@ export function ProjectsPage() {
     projectManagerId: "",
     clientName: "",
     clientEmail: "",
+    teamMemberIds: [],
   })
 
   const { user } = useAuth()
@@ -147,8 +150,14 @@ export function ProjectsPage() {
         ? users.filter((member: any) => ["ADMIN", "PROJECT_MANAGER"].includes(member.role))
         : []
       
+      const members = Array.isArray(users)
+        ? users.filter((member: any) => member.role === "TEAM_MEMBER")
+        : []
+      
       console.log('Filtered managers:', managers)
+      console.log('Filtered team members:', members)
       setProjectManagers(managers)
+      setTeamMembers(members)
       
       if (managers.length > 0) {
         const defaultManager = managers.find((manager: any) => manager.id === user?.id) || managers[0]
@@ -171,6 +180,7 @@ export function ProjectsPage() {
       projectManagerId: user && ["ADMIN", "PROJECT_MANAGER"].includes(user.role) ? user.id : "",
       clientName: "",
       clientEmail: "",
+      teamMemberIds: [],
     })
     setStartDate(new Date())
     setEndDate(undefined)
@@ -321,6 +331,7 @@ export function ProjectsPage() {
     if (deadline) payload.deadline = deadline.toISOString()
     if (clientName) payload.clientName = clientName
     if (clientEmail) payload.clientEmail = clientEmail
+    if (formData.teamMemberIds.length > 0) payload.teamMemberIds = formData.teamMemberIds
 
     setCreateLoading(true)
     try {
@@ -396,7 +407,10 @@ export function ProjectsPage() {
           {canCreateProject ? (
             <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
               <DialogTrigger asChild>
-                <Button icon={<Plus className="h-4 w-4" />}>New Project</Button>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Project
+                </Button>
               </DialogTrigger>
               <DialogContent className="max-h-[85vh] overflow-y-auto">
                 <form onSubmit={handleCreateProject} className="space-y-4">
@@ -516,6 +530,50 @@ export function ProjectsPage() {
                       </Select>
                     </div>
 
+                    <div className="space-y-2">
+                      <Label>Team Members (Optional)</Label>
+                      <div className="border rounded-md p-3 max-h-48 overflow-y-auto space-y-2">
+                        {teamMembers.length === 0 && !managersLoading ? (
+                          <p className="text-sm text-muted-foreground">No team members available</p>
+                        ) : (
+                          teamMembers.map((member) => (
+                            <div key={member.id} className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id={`member-${member.id}`}
+                                checked={formData.teamMemberIds.includes(member.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      teamMemberIds: [...prev.teamMemberIds, member.id]
+                                    }))
+                                  } else {
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      teamMemberIds: prev.teamMemberIds.filter(id => id !== member.id)
+                                    }))
+                                  }
+                                }}
+                                className="h-4 w-4 rounded border-gray-300"
+                              />
+                              <label
+                                htmlFor={`member-${member.id}`}
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                              >
+                                {member.name} ({member.email})
+                              </label>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                      {formData.teamMemberIds.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          {formData.teamMemberIds.length} member(s) selected
+                        </p>
+                      )}
+                    </div>
+
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
                         <Label htmlFor="client-name">Client name</Label>
@@ -551,7 +609,8 @@ export function ProjectsPage() {
               </DialogContent>
             </Dialog>
           ) : (
-            <Button icon={<Plus className="h-4 w-4" />} disabled title="Only admins and project managers can create projects">
+            <Button disabled title="Only admins and project managers can create projects">
+              <Plus className="h-4 w-4 mr-2" />
               New Project
             </Button>
           )}

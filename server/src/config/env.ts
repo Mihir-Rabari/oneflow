@@ -1,7 +1,22 @@
 import dotenv from 'dotenv';
 import { z } from 'zod';
+import path from 'path';
+import fs from 'fs';
 
-dotenv.config();
+// Try multiple paths to find .env (handles both dev and production builds)
+const possibleEnvPaths = [
+  path.resolve(process.cwd(), '.env'),                    // Root when running from repo root
+  path.resolve(__dirname, '../../../../.env'),            // From server/src/config when using tsx
+  path.resolve(__dirname, '../../../.env'),               // From server/dist/config when compiled
+];
+
+const envPath = possibleEnvPaths.find(p => fs.existsSync(p));
+if (envPath) {
+  dotenv.config({ path: envPath });
+  console.log(`✅ Loaded .env from: ${envPath}`);
+} else {
+  console.warn('⚠️  No .env file found, using environment variables');
+}
 
 const envSchema = z.object({
   // Database

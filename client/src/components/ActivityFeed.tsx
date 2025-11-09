@@ -9,9 +9,16 @@ import { formatDistanceToNow } from "date-fns"
 interface ActivityFeedProps {
   limit?: number
   showFilters?: boolean
+  autoRefresh?: boolean
+  refreshInterval?: number
 }
 
-export function ActivityFeed({ limit = 20, showFilters = true }: ActivityFeedProps) {
+export function ActivityFeed({ 
+  limit = 20, 
+  showFilters = true, 
+  autoRefresh = true,
+  refreshInterval = 4000 
+}: ActivityFeedProps) {
   const [activities, setActivities] = useState<any[]>([])
   const [projects, setProjects] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -25,6 +32,17 @@ export function ActivityFeed({ limit = 20, showFilters = true }: ActivityFeedPro
       fetchProjects()
     }
   }, [selectedProject, selectedType, limit])
+
+  // Auto-refresh every 4 seconds
+  useEffect(() => {
+    if (!autoRefresh) return
+
+    const interval = setInterval(() => {
+      fetchActivities()
+    }, refreshInterval)
+
+    return () => clearInterval(interval)
+  }, [autoRefresh, refreshInterval, selectedProject, selectedType, limit])
 
   const fetchProjects = async () => {
     try {
