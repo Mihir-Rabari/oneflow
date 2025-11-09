@@ -59,7 +59,7 @@ export class SalesOrdersService {
         customerEmail: data.customerEmail,
         amount: data.amount,
         description: data.description,
-        status: data.status || DocumentStatus.DRAFT,
+        status: data.status || DocumentStatus.SENT,
         orderDate: new Date(data.orderDate),
         validUntil: data.validUntil ? new Date(data.validUntil) : null,
         createdById: userId,
