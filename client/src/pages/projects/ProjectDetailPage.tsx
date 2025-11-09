@@ -129,10 +129,20 @@ export function ProjectDetailPage() {
     try {
       // Fetch sales orders for this project
       const soResponse = await salesOrdersApi.getAll()
-      if (soResponse.data?.data?.salesOrders) {
-        const projectSO = soResponse.data.data.salesOrders.filter((so: any) => so.projectId === projectId)
-        setSalesOrders(projectSO)
+      console.log('Sales Orders API Response:', soResponse)
+      
+      let allSalesOrders: any[] = []
+      if (Array.isArray(soResponse.data)) {
+        allSalesOrders = soResponse.data
+      } else if (soResponse.data?.data && Array.isArray(soResponse.data.data)) {
+        allSalesOrders = soResponse.data.data
+      } else if (soResponse.data?.salesOrders && Array.isArray(soResponse.data.salesOrders)) {
+        allSalesOrders = soResponse.data.salesOrders
       }
+      
+      const projectSO = allSalesOrders.filter((so: any) => so.projectId === projectId)
+      console.log('Filtered Sales Orders for project:', projectSO)
+      setSalesOrders(projectSO)
 
       // Fetch invoices for this project
       const invResponse = await invoicesApi.getAll()

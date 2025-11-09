@@ -434,10 +434,10 @@ async function main() {
   console.log('💰 Creating sales orders...');
   await prisma.salesOrder.createMany({
     data: [
-      { orderNumber: 'SO-2025-0001', projectId: project1.id, customerName: 'Tech Retail Inc', amount: 50000, status: 'APPROVED', orderDate: new Date('2025-10-01'), createdById: sales.id },
-      { orderNumber: 'SO-2025-0002', projectId: project1.id, customerName: 'Tech Retail Inc', amount: 50000, status: 'DRAFT', orderDate: new Date('2025-11-01'), createdById: sales.id },
-      { orderNumber: 'SO-2025-0003', projectId: project2.id, customerName: 'FinTech Solutions', amount: 150000, status: 'APPROVED', orderDate: new Date('2025-09-15'), createdById: sales.id },
-      { orderNumber: 'SO-2025-0004', projectId: project4.id, customerName: 'Sales Pro Inc', amount: 120000, status: 'APPROVED', orderDate: new Date('2025-08-01'), createdById: finance.id },
+      { orderNumber: 'SO-2025-0001', projectId: project1.id, customerName: 'Tech Retail Inc', amount: 50000, status: 'SENT', orderDate: new Date('2025-10-01'), createdById: sales.id },
+      { orderNumber: 'SO-2025-0002', projectId: project1.id, customerName: 'Tech Retail Inc', amount: 50000, status: 'SENT', orderDate: new Date('2025-11-01'), createdById: sales.id },
+      { orderNumber: 'SO-2025-0003', projectId: project2.id, customerName: 'FinTech Solutions', amount: 150000, status: 'SENT', orderDate: new Date('2025-09-15'), createdById: sales.id },
+      { orderNumber: 'SO-2025-0004', projectId: project4.id, customerName: 'Sales Pro Inc', amount: 120000, status: 'SENT', orderDate: new Date('2025-08-01'), createdById: finance.id },
     ],
   });
   console.log(`✅ Created 4 sales orders`);
