@@ -1,14 +1,9 @@
-import { useEffect, useState } from "react"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { 
   Users, 
   FolderKanban, 
-  CheckSquare, 
-  TrendingUp, 
-  DollarSign,
   FileText,
   ShoppingCart,
   Receipt,
@@ -16,48 +11,9 @@ import {
   AlertCircle
 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
-import { projectsApi, usersApi, tasksApi } from "@/lib/api"
 
 export function AdminDashboard() {
   const navigate = useNavigate()
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    totalProjects: 0,
-    totalTasks: 0,
-    activeProjects: 0,
-    pendingUsers: 0
-  })
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetchStats()
-  }, [])
-
-  const fetchStats = async () => {
-    try {
-      const [usersRes, projectsRes, tasksRes] = await Promise.all([
-        usersApi.getAll(),
-        projectsApi.getAll(),
-        tasksApi.getAll()
-      ])
-
-      const users = usersRes.data?.data?.users || usersRes.data?.users || []
-      const projects = projectsRes.data?.data?.projects || projectsRes.data?.projects || []
-      const tasks = tasksRes.data?.data?.tasks || tasksRes.data?.tasks || []
-
-      setStats({
-        totalUsers: users.length,
-        totalProjects: projects.length,
-        totalTasks: tasks.length,
-        activeProjects: projects.filter((p: any) => p.status === 'IN_PROGRESS').length,
-        pendingUsers: users.filter((u: any) => u.status === 'PENDING').length
-      })
-    } catch (error) {
-      console.error('Failed to fetch stats:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const quickActions = [
     { icon: Users, label: "Manage Users", path: "/users", color: "text-blue-600" },
@@ -75,65 +31,6 @@ export function AdminDashboard() {
         <div>
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
           <p className="text-muted-foreground">Complete system overview and management</p>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalUsers}</div>
-              {stats.pendingUsers > 0 && (
-                <p className="text-xs text-orange-600 mt-1">
-                  {stats.pendingUsers} pending approval
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
-              <FolderKanban className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalProjects}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {stats.activeProjects} active
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Tasks</CardTitle>
-              <CheckSquare className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalTasks}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Across all projects
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">System Health</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                <Badge variant="default" className="bg-green-600">Healthy</Badge>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                All systems operational
-              </p>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Quick Actions */}
