@@ -7,6 +7,10 @@ import { LoginPage } from './pages/auth/LoginPage'
 import { RegisterPage } from './pages/auth/RegisterPage'
 import { OTPPage } from './pages/auth/OTPPage'
 import { DashboardPage } from './pages/dashboard/DashboardPage'
+import { AdminDashboard } from './pages/dashboards/AdminDashboard'
+import { ProjectManagerDashboard } from './pages/dashboards/ProjectManagerDashboard'
+import { TeamMemberDashboard } from './pages/dashboards/TeamMemberDashboard'
+import { SalesFinanceDashboard } from './pages/dashboards/SalesFinanceDashboard'
 import { ProjectsPage } from './pages/projects/ProjectsPage'
 import { ProjectDetailPage } from './pages/projects/ProjectDetailPage'
 import { TaskDetailPage } from './pages/tasks/TaskDetailPage'
@@ -39,6 +43,12 @@ function App() {
           
           {/* Protected routes */}
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+          
+          {/* Role-specific dashboards */}
+          <Route path="/admin/dashboard" element={<RoleProtectedRoute allowedRoles={["ADMIN"]}><AdminDashboard /></RoleProtectedRoute>} />
+          <Route path="/pm/dashboard" element={<RoleProtectedRoute allowedRoles={["PROJECT_MANAGER"]}><ProjectManagerDashboard /></RoleProtectedRoute>} />
+          <Route path="/team/dashboard" element={<RoleProtectedRoute allowedRoles={["TEAM_MEMBER"]}><TeamMemberDashboard /></RoleProtectedRoute>} />
+          <Route path="/finance/dashboard" element={<RoleProtectedRoute allowedRoles={["SALES_FINANCE"]}><SalesFinanceDashboard /></RoleProtectedRoute>} />
           <Route path="/projects" element={<ProtectedRoute><ProjectsPage /></ProtectedRoute>} />
           <Route path="/projects/:projectId" element={<ProtectedRoute><ProjectDetailPage /></ProtectedRoute>} />
           <Route path="/tasks/:taskId" element={<ProtectedRoute><TaskDetailPage /></ProtectedRoute>} />
