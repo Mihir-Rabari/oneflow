@@ -62,9 +62,20 @@ export function LoginPage() {
       } else if (response.data) {
         // Store token
         if (response.data?.success) {
-          // Save token using auth context and navigate to dashboard
+          // Save token using auth context
           login(response.data.data.accessToken, response.data.data.user)
-          navigate('/dashboard')
+          
+          // Navigate to role-specific dashboard
+          const userRole = response.data.data.user.role
+          if (userRole === 'ADMIN') {
+            navigate('/admin/dashboard')
+          } else if (userRole === 'PROJECT_MANAGER') {
+            navigate('/pm/dashboard')
+          } else if (userRole === 'SALES_FINANCE') {
+            navigate('/finance/dashboard')
+          } else {
+            navigate('/team/dashboard')  // TEAM_MEMBER
+          }
         } else {
           setError(response.error || 'Login failed')
         }
