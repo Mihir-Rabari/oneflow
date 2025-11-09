@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "OneFlow Backend API",
   "main": "dist/index.js",
+  "prisma": {
+    "seed": "dotenv -e ../.env -- tsx prisma/seed.ts"
+  },
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc && tsc-alias",
